@@ -1,0 +1,52 @@
+[
+  {
+    "id": 1781222193626,
+    "date": "2026-06-11T23:56:33.626Z",
+    "name": "Владислав",
+    "email": "vladikholod@gmail.com",
+    "phone": "+380689699088888",
+    "type": "Додати локацію",
+    "business": "Перевірка",
+    "message": "перевірка"
+  },
+  {
+    "id": 1781222418537,
+    "date": "2026-06-12T00:00:18.537Z",
+    "name": "Влад",
+    "email": "vladikgolod@gmail.com",
+    "phone": "000000000000",
+    "type": "Додати локацію",
+    "business": "",
+    "message": "Dsdasddsada"
+  },
+  {
+    "id": 1781222570804,
+    "date": "2026-06-12T00:02:50.804Z",
+    "name": "Ввввв",
+    "email": "vlad@gmail.com",
+    "phone": "+380689699088",
+    "type": "Додати локацію",
+    "business": "",
+    "message": "чек апчікс\n"
+  },
+  {
+    "id": 1781256361462,
+    "date": "2026-06-12T09:26:01.462Z",
+    "name": "Влад ",
+    "email": "vladikgolod@gmail.com",
+    "phone": "+380689699088",
+    "type": "Додати локацію",
+    "business": "",
+    "message": "Clokcsdsafa"
+  },
+  {
+    "id": 1781450208759,
+    "date": "2026-06-14T15:16:48.759Z",
+    "name": "Влад",
+    "email": "vladgolod@gmail.com",
+    "phone": "+380689699088",
+    "type": "Інше",
+    "business": "",
+    "message": "Перевірка роботи"
+  }
+]

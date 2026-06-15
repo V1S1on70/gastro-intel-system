@@ -1,0 +1,3021 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GastroIntel — Смаки Рівненщини</title>
+  <link rel="icon" type="image/svg+xml" href="images/logo.svg">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<style>
+  :root {
+    --noir: #0A0A0A;
+    --ivory: #F5F0E8;
+    --gold: #C9A84C;
+    --gold-light: #E8D49A;
+    --slate: #1C1C1C;
+    --stone: #8A8278;
+    --stone-light: #B8B2AA;
+    --surface: #141414;
+    --surface2: #1A1A1A;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  #gastro-app {
+    background: var(--noir);
+    color: var(--ivory);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .g-nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,10,10,0.96);
+    border-bottom: 0.5px solid rgba(201,168,76,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 48px;
+    height: 64px;
+    backdrop-filter: blur(8px);
+  }
+  .g-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    color: var(--ivory);
+  }
+  .g-logo span { color: var(--gold); font-style: italic; }
+  .g-nav-links {
+    display: flex;
+    gap: 36px;
+    list-style: none;
+  }
+  .g-nav-links li a {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--stone-light);
+    text-decoration: none;
+    transition: color 0.2s;
+    cursor: pointer;
+  }
+  .g-nav-links li a:hover, .g-nav-links li a.active { color: var(--gold); }
+  .g-nav-cta {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--noir);
+    background: var(--gold);
+    border: none;
+    padding: 10px 24px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: background 0.2s;
+  }
+  .g-nav-cta:hover { background: var(--gold-light); }
+/* Стиль для бургер-кнопки (на ПК вона схована) */
+  .mobile-menu-btn {
+    display: none;
+    background: transparent;
+    border: none;
+    color: var(--gold);
+    font-size: 28px;
+    cursor: pointer;
+  }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* HERO */
+  .hero {
+    position: relative;
+    min-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 48px;
+    overflow: hidden;
+  }
+  .hero-bg-text {
+    position: absolute;
+    top: 50%;
+    right: -20px;
+    transform: translateY(-50%);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 240px;
+    font-weight: 300;
+    color: rgba(201,168,76,0.04);
+    letter-spacing: -0.05em;
+    pointer-events: none;
+    white-space: nowrap;
+    line-height: 1;
+  }
+  .hero-eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .hero-eyebrow::before {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 0.5px;
+    background: var(--gold);
+  }
+  .hero-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(52px, 7vw, 96px);
+    font-weight: 300;
+    line-height: 1.0;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+    max-width: 800px;
+  }
+  .hero-title em {
+    font-style: italic;
+    color: var(--gold);
+  }
+  .hero-divider {
+    width: 100%;
+    height: 0.5px;
+    background: linear-gradient(to right, var(--gold) 0%, rgba(201,168,76,0.1) 60%, transparent 100%);
+    margin: 32px 0;
+    max-width: 900px;
+  }
+  .hero-subtitle {
+    font-size: 16px;
+    color: var(--stone-light);
+    max-width: 520px;
+    line-height: 1.75;
+    font-weight: 300;
+    margin-bottom: 48px;
+  }
+  .hero-actions {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+  }
+  .btn-primary {
+    background: var(--gold);
+    color: var(--noir);
+    border: none;
+    padding: 14px 36px;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: background 0.2s;
+  }
+  .btn-primary:hover { background: var(--gold-light); }
+  .btn-outline {
+    background: transparent;
+    color: var(--stone-light);
+    border: 0.5px solid rgba(138,130,120,0.4);
+    padding: 14px 36px;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s;
+  }
+  .btn-outline:hover { color: var(--ivory); border-color: var(--ivory); }
+  .hero-stats {
+    position: absolute;
+    bottom: 56px;
+    left: 48px;
+    right: 48px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border-top: 0.5px solid rgba(201,168,76,0.2);
+    padding-top: 28px;
+  }
+  .hero-stat {
+    padding-right: 32px;
+    border-right: 0.5px solid rgba(138,130,120,0.15);
+  }
+  .hero-stat:last-child { border-right: none; }
+  .hero-stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 36px;
+    font-weight: 300;
+    color: var(--ivory);
+    line-height: 1;
+  }
+  .hero-stat-num span { color: var(--gold); font-size: 20px; }
+  .hero-stat-label {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--stone);
+    margin-top: 6px;
+  }
+
+  /* SECTIONS */
+  .section {
+    padding: 100px 48px;
+    border-top: 0.5px solid rgba(138,130,120,0.12);
+  }
+  .section-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 64px;
+  }
+  .section-eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-eyebrow::before {
+    content: '';
+    display: block;
+    width: 24px;
+    height: 0.5px;
+    background: var(--gold);
+  }
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 48px;
+    font-weight: 300;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+  }
+  .section-title em { font-style: italic; color: var(--gold); }
+  .section-link {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gold);
+    text-decoration: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    padding-bottom: 4px;
+    border-bottom: 0.5px solid rgba(201,168,76,0.3);
+    transition: gap 0.2s;
+  }
+  .section-link:hover { gap: 14px; }
+
+  /* LOCATION CARDS */
+  .locations-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 1px;
+    background: rgba(138,130,120,0.15);
+  }
+  .loc-card {
+    background: var(--noir);
+    padding: 36px 32px;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  .loc-card:hover { background: var(--surface); }
+  .loc-card.featured { grid-row: 1 / 3; }
+  .loc-card-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 64px;
+    font-weight: 300;
+    color: rgba(201,168,76,0.08);
+    position: absolute;
+    top: 16px;
+    right: 24px;
+    line-height: 1;
+  }
+  .loc-card-badge {
+    display: inline-block;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    border: 0.5px solid rgba(201,168,76,0.35);
+    padding: 4px 12px;
+    margin-bottom: 24px;
+  }
+  .loc-card-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 400;
+    line-height: 1.15;
+    margin-bottom: 12px;
+  }
+  .loc-card.featured .loc-card-name { font-size: 44px; margin-bottom: 20px; }
+  .loc-card-desc {
+    font-size: 13px;
+    color: var(--stone-light);
+    line-height: 1.7;
+    max-width: 380px;
+    margin-bottom: 28px;
+    font-weight: 300;
+  }
+  .loc-card-meta {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .loc-meta-item {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--stone);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .loc-meta-item i { color: var(--gold); font-size: 12px; }
+  .loc-score {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    margin-top: auto;
+    margin-bottom: 12px;
+  }
+  .loc-score-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 48px;
+    font-weight: 300;
+    color: var(--ivory);
+    line-height: 1;
+  }
+  .loc-score-label { font-size: 10px; color: var(--stone); letter-spacing: 0.1em; text-transform: uppercase; }
+
+  /* FEATURES GRID */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: rgba(138,130,120,0.12);
+  }
+  .feat-card {
+    background: var(--noir);
+    padding: 48px 36px;
+    transition: background 0.3s;
+  }
+  .feat-card:hover { background: var(--surface); }
+  .feat-icon {
+    width: 40px;
+    height: 40px;
+    border: 0.5px solid rgba(201,168,76,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 28px;
+    color: var(--gold);
+    font-size: 18px;
+  }
+  .feat-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 400;
+    margin-bottom: 14px;
+    line-height: 1.3;
+  }
+  .feat-desc {
+    font-size: 13px;
+    color: var(--stone-light);
+    line-height: 1.75;
+    font-weight: 300;
+  }
+
+  /* LOCATIONS PAGE */
+  .page-hero {
+    padding: 80px 48px 64px;
+    border-bottom: 0.5px solid rgba(138,130,120,0.12);
+  }
+  .page-hero-label {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--stone);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .page-hero-label::before {
+    content: '';
+    display: block;
+    width: 24px;
+    height: 0.5px;
+    background: var(--stone);
+  }
+  .page-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 72px;
+    font-weight: 300;
+    line-height: 1.0;
+    letter-spacing: -0.02em;
+  }
+  .page-title em { font-style: italic; color: var(--gold); }
+  .page-subtitle {
+    font-size: 15px;
+    color: var(--stone-light);
+    max-width: 480px;
+    line-height: 1.75;
+    font-weight: 300;
+    margin-top: 20px;
+  }
+
+  .filters-bar {
+    padding: 28px 48px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border-bottom: 0.5px solid rgba(138,130,120,0.12);
+    flex-wrap: wrap;
+  }
+  .filter-btn {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--stone);
+    background: transparent;
+    border: 0.5px solid rgba(138,130,120,0.25);
+    padding: 8px 20px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    color: var(--ivory);
+    border-color: rgba(245,240,232,0.4);
+  }
+  .filter-btn.active { color: var(--gold); border-color: rgba(201,168,76,0.4); }
+
+  .loc-list {
+    padding: 0 48px;
+  }
+  .loc-row {
+    display: grid;
+    grid-template-columns: 60px 2fr 1fr 1fr 80px 100px;
+    align-items: center;
+    gap: 24px;
+    padding: 28px 0;
+    border-bottom: 0.5px solid rgba(138,130,120,0.1);
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .loc-row:hover { background: rgba(201,168,76,0.03); margin: 0 -48px; padding: 28px 48px; }
+  .loc-rank {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    font-weight: 300;
+    color: var(--stone);
+  }
+  .loc-row-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 400;
+  }
+  .loc-row-sub {
+    font-size: 11px;
+    color: var(--stone);
+    letter-spacing: 0.05em;
+    margin-top: 3px;
+    text-transform: uppercase;
+  }
+  .loc-row-tag {
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border: 0.5px solid rgba(201,168,76,0.3);
+    color: var(--gold);
+    padding: 4px 10px;
+    display: inline-block;
+  }
+  .loc-row-score-bar {
+    height: 2px;
+    background: rgba(138,130,120,0.2);
+    position: relative;
+    overflow: hidden;
+  }
+  .loc-row-score-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    background: var(--gold);
+  }
+  .loc-row-score-val {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    font-weight: 300;
+    text-align: right;
+  }
+
+  /* MAP PAGE */
+  .map-container {
+    padding: 48px;
+    min-height: 70vh;
+  }
+  .map-layout {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 1px;
+    background: rgba(138,130,120,0.12);
+    min-height: 600px;
+  }
+  .map-sidebar {
+    background: var(--surface);
+    padding: 32px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .map-search {
+    background: rgba(255,255,255,0.04);
+    border: 0.5px solid rgba(138,130,120,0.25);
+    color: var(--ivory);
+    padding: 12px 16px;
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    width: 100%;
+    margin-bottom: 24px;
+    outline: none;
+  }
+  .map-search::placeholder { color: var(--stone); }
+  .map-item {
+    padding: 20px 0;
+    border-bottom: 0.5px solid rgba(138,130,120,0.1);
+    cursor: pointer;
+    transition: padding-left 0.2s;
+  }
+  .map-item:hover { padding-left: 8px; }
+  .map-item.selected { padding-left: 8px; border-left: 2px solid var(--gold); }
+  .map-item-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17px;
+    font-weight: 400;
+  }
+  .map-item-info {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--stone);
+    margin-top: 4px;
+    display: flex;
+    gap: 12px;
+  }
+  .map-viz {
+    background: var(--noir);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .map-svg-wrap {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+  }
+  .map-pin {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    transform-box: fill-box;
+    transform-origin: center center;
+  }
+  .map-pin:hover { 
+    transform: scale(1.4); 
+  }
+  .map-tooltip {
+    position: absolute;
+    background: var(--surface2);
+    border: 0.5px solid rgba(201,168,76,0.4);
+    padding: 16px 20px;
+    pointer-events: none;
+    min-width: 180px;
+    display: none;
+  }
+  .map-tooltip.visible { display: block; }
+  .map-tooltip-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    font-weight: 400;
+    margin-bottom: 6px;
+  }
+  .map-tooltip-info {
+    font-size: 11px;
+    color: var(--stone-light);
+  }
+
+  /* ABOUT PAGE */
+  .about-intro {
+    padding: 100px 48px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+  }
+  .about-big-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 56px;
+    font-weight: 300;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  .about-big-text em { font-style: italic; color: var(--gold); }
+  .about-body {
+    font-size: 15px;
+    color: var(--stone-light);
+    line-height: 1.85;
+    font-weight: 300;
+  }
+  .about-body p { margin-bottom: 20px; }
+  .about-timeline {
+    padding: 0 48px 100px;
+  }
+  .timeline-item {
+    display: grid;
+    grid-template-columns: 120px 1px 1fr;
+    gap: 0 36px;
+    padding: 40px 0;
+    border-top: 0.5px solid rgba(138,130,120,0.12);
+  }
+  .timeline-year {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    font-weight: 300;
+    color: var(--stone);
+    line-height: 1;
+    padding-top: 4px;
+    text-align: right;
+  }
+  .timeline-line {
+    background: rgba(138,130,120,0.2);
+    position: relative;
+  }
+  .timeline-line::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px;
+    height: 6px;
+    background: var(--gold);
+  }
+  .timeline-content {}
+  .timeline-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 400;
+    margin-bottom: 10px;
+  }
+  .timeline-desc {
+    font-size: 13px;
+    color: var(--stone-light);
+    line-height: 1.75;
+    font-weight: 300;
+  }
+
+  /* CONTACT & ADMIN PAGE */
+  .contact-layout {
+    padding: 80px 48px;
+    display: grid;
+    grid-template-columns: 1fr 1.4fr;
+    gap: 80px;
+    align-items: start;
+  }
+  .contact-info-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 48px;
+    font-weight: 300;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin-bottom: 28px;
+  }
+  .contact-info-title em { font-style: italic; color: var(--gold); }
+  .contact-info-body {
+    font-size: 14px;
+    color: var(--stone-light);
+    line-height: 1.8;
+    font-weight: 300;
+    margin-bottom: 48px;
+  }
+  .contact-detail {
+    padding: 20px 0;
+    border-top: 0.5px solid rgba(138,130,120,0.12);
+  }
+  .contact-detail:last-child { border-bottom: 0.5px solid rgba(138,130,120,0.12); }
+  .contact-detail-label {
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 6px;
+  }
+  .contact-detail-val {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    font-weight: 400;
+  }
+  .contact-form {}
+  .form-row { margin-bottom: 24px; }
+  .form-label {
+    display: block;
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--stone);
+    margin-bottom: 10px;
+  }
+  .form-input {
+    width: 100%;
+    background: rgba(255,255,255,0.03);
+    border: 0.5px solid rgba(138,130,120,0.25);
+    color: var(--ivory);
+    padding: 14px 18px;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-input:focus { border-color: rgba(201,168,76,0.5); }
+  .form-input::placeholder { color: var(--stone); }
+  .form-select {
+    width: 100%;
+    background: rgba(255,255,255,0.03);
+    border: 0.5px solid rgba(138,130,120,0.25);
+    color: var(--ivory);
+    padding: 14px 18px;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    appearance: none;
+    cursor: pointer;
+  }
+  .form-select option { background: var(--slate); }
+  textarea.form-input { resize: none; min-height: 140px; line-height: 1.6; }
+
+  /* FOOTER */
+  .g-footer {
+    border-top: 0.5px solid rgba(201,168,76,0.2);
+    padding: 56px 48px 40px;
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr 1fr;
+    gap: 40px;
+  }
+  .footer-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    margin-bottom: 16px;
+  }
+  .footer-logo span { color: var(--gold); font-style: italic; }
+  .footer-desc {
+    font-size: 12px;
+    color: var(--stone);
+    line-height: 1.75;
+    font-weight: 300;
+    max-width: 260px;
+  }
+  .footer-col-title {
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--stone);
+    margin-bottom: 20px;
+  }
+  .footer-links { list-style: none; }
+  .footer-links li {
+    margin-bottom: 12px;
+  }
+  .footer-links li a {
+    font-size: 13px;
+    color: var(--stone-light);
+    text-decoration: none;
+    cursor: pointer;
+    font-weight: 300;
+    transition: color 0.2s;
+  }
+  .footer-links li a:hover { color: var(--gold); }
+  .footer-bottom {
+    border-top: 0.5px solid rgba(138,130,120,0.1);
+    padding: 24px 48px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .footer-copy {
+    font-size: 11px;
+    color: var(--stone);
+    font-weight: 300;
+  }
+  .footer-tagline {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 13px;
+    color: var(--stone);
+    font-style: italic;
+  }
+
+  .gold-line {
+    width: 100%;
+    height: 0.5px;
+    background: linear-gradient(to right, transparent, var(--gold), transparent);
+    margin: 0;
+  }
+  
+  .tag-pill {
+    display: inline-block;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border: 0.5px solid rgba(201,168,76,0.3);
+    color: var(--gold);
+  }
+
+  .about-pillars {
+    padding: 0 48px 100px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: rgba(138,130,120,0.12);
+  }
+  .pillar {
+    background: var(--noir);
+    padding: 44px 32px;
+    transition: background 0.3s;
+  }
+  .pillar:hover { background: var(--surface); }
+  .pillar-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 48px;
+    font-weight: 300;
+    color: rgba(201,168,76,0.2);
+    line-height: 1;
+    margin-bottom: 20px;
+  }
+  .pillar-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    font-weight: 400;
+    margin-bottom: 12px;
+    line-height: 1.3;
+  }
+  .pillar-desc {
+    font-size: 12px;
+    color: var(--stone-light);
+    line-height: 1.75;
+    font-weight: 300;
+  }
+  
+  /* PRODUCTS PAGE */
+  .products-grid {
+    padding: 0 48px 100px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: rgba(138,130,120,0.12);
+  }
+  .prod-card {
+    background: var(--noir);
+    padding: 40px 32px;
+    transition: background 0.3s;
+    display: flex;
+    flex-direction: column;
+  }
+  .prod-card:hover { background: var(--surface); }
+  .prod-producer {
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--stone);
+    margin-bottom: 8px;
+  }
+  .prod-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 26px;
+    font-weight: 400;
+    line-height: 1.2;
+    margin-bottom: 16px;
+  }
+  .prod-desc {
+    font-size: 13px;
+    color: var(--stone-light);
+    line-height: 1.7;
+    margin-bottom: 32px;
+    font-weight: 300;
+    flex-grow: 1;
+  }
+  .prod-footer {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    border-top: 0.5px solid rgba(201,168,76,0.2);
+    padding-top: 20px;
+  }
+  .prod-price-val {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    color: var(--ivory);
+    line-height: 1;
+  }
+  .prod-price-val span { font-size: 16px; color: var(--gold); }
+  .prod-weight {
+    font-size: 10px;
+    color: var(--stone);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .prod-img-wrap {
+    width: 100%;
+    height: 240px;
+    margin-bottom: 24px;
+    overflow: hidden;
+    position: relative;
+  }
+  .prod-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+  }
+  .prod-card:hover .prod-img {
+    transform: scale(1.05);
+  }
+  .prod-category {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: rgba(10,10,10,0.8);
+    backdrop-filter: blur(4px);
+    color: var(--ivory);
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 6px 12px;
+    border: 0.5px solid rgba(201,168,76,0.3);
+  }
+  /* ADMIN DASHBOARD */
+  .admin-dashboard {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 40px;
+    padding: 0 48px 100px;
+    align-items: start;
+  }
+  .admin-sidebar {
+    background: var(--surface);
+    border: 0.5px solid rgba(138,130,120,0.15);
+    display: flex;
+    flex-direction: column;
+  }
+  .admin-tab-btn {
+    background: transparent;
+    border: none;
+    border-bottom: 0.5px solid rgba(138,130,120,0.1);
+    color: var(--stone-light);
+    padding: 20px 24px;
+    text-align: left;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .admin-tab-btn:hover { background: rgba(255,255,255,0.02); }
+  .admin-tab-btn.active {
+    background: rgba(201,168,76,0.08);
+    color: var(--gold);
+    border-left: 2px solid var(--gold);
+  }
+  .admin-panel-content {
+    background: var(--surface);
+    border: 0.5px solid rgba(138,130,120,0.15);
+    padding: 40px;
+  }
+  .admin-tab-pane { display: none; }
+  .admin-tab-pane.active { display: block; }
+  
+  /* Messages List */
+  .msg-card {
+    background: var(--noir);
+    border: 0.5px solid rgba(138,130,120,0.2);
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .msg-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 0.5px solid rgba(138,130,120,0.1);
+    font-size: 11px;
+    color: var(--stone);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .msg-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+  /* КАСТОМНЕ ВІКНО ЗАМОВЛЕННЯ (MODAL) */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    /* Робимо фон майже повністю чорним замість важкого blur */
+    background: rgba(10,10,10,0.95); 
+    z-index: 1000; display: none; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 0.3s ease;
+  }
+  .modal-overlay.active {
+    display: flex;
+    opacity: 1;
+  }
+  .modal-content {
+    background: var(--surface);
+    border: 0.5px solid rgba(201,168,76,0.4);
+    padding: 40px;
+    width: 100%;
+    max-width: 500px; /* Трохи розширили для кошика */
+    position: relative;
+    transform: translateY(20px);
+    transition: transform 0.3s ease;
+  }
+  .modal-overlay.active .modal-content {
+    transform: translateY(0);
+  }
+  .modal-close {
+    position: absolute;
+    top: 16px; right: 20px;
+    background: transparent; border: none;
+    color: var(--stone); font-size: 28px;
+    cursor: pointer; transition: color 0.2s;
+    line-height: 1;
+  }
+  .modal-close:hover { color: var(--gold); }
+  /* ФЛОАТИНГ КНОПКА ТА ЕЛЕМЕНТИ КОШИКА */
+  .cart-floating-btn {
+    position: fixed; bottom: 40px; right: 40px;
+    background: var(--gold); color: var(--noir);
+    border: none; border-radius: 50px;
+    padding: 16px 24px; font-family: 'Inter', sans-serif;
+    font-weight: 500; font-size: 14px; cursor: pointer;
+    display: none; /* Сховано, поки кошик порожній */
+    box-shadow: 0 4px 20px rgba(201,168,76,0.3);
+    z-index: 99; transition: transform 0.2s;
+  }
+  .cart-floating-btn:hover { transform: scale(1.05); background: var(--gold-light); }
+  
+  .cart-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 0; border-bottom: 0.5px solid rgba(138,130,120,0.2);
+  }
+  .cart-item-title { font-size: 14px; color: var(--ivory); }
+  .cart-item-price { font-size: 14px; color: var(--gold); }
+  .cart-item-remove { background: transparent; border: none; color: #ff6b6b; cursor: pointer; font-size: 18px; padding: 0 8px; }
+
+  /* Блокування фону при відкритому кошику (прибирає лаги) */
+  body.modal-open { overflow: hidden; }
+
+  /* Стилі для кнопок кількості товару (+ / -) */
+  .cart-qty-ctrl {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px;
+  }
+  .qty-btn {
+    background: transparent; border: none; color: var(--gold);
+    font-size: 16px; cursor: pointer; width: 20px; height: 20px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .qty-btn:hover { color: var(--ivory); }
+  .qty-num { font-size: 13px; color: var(--ivory); min-width: 16px; text-align: center; }
+
+  /* СТИЛІ ДЛЯ СПОВІЩЕНЬ (TOAST) */
+  #toast-container {
+    position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
+    z-index: 1000; display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+  }
+  .toast {
+    background: var(--surface2); color: var(--ivory); border: 0.5px solid rgba(201,168,76,0.4);
+    padding: 12px 24px; font-family: 'Inter', sans-serif; font-size: 13px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5); opacity: 0; transform: translateY(20px); transition: all 0.3s ease;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+/* ОПТИМІЗАЦІЯ СКРОЛУ ТА КАСТОМНИЙ СКРОЛБАР ДЛЯ КОШИКА */
+  #cart-items-list {
+    margin-bottom: 24px; 
+    max-height: 250px; 
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch; /* Вмикає плавний скрол на смартфонах */
+    transform: translateZ(0); /* Змушує обробляти скрол через відеокарту */
+    padding-right: 8px;
+  }
+  
+  #cart-items-list::-webkit-scrollbar {
+    width: 6px;
+  }
+  #cart-items-list::-webkit-scrollbar-track {
+    background: rgba(138,130,120,0.05);
+    border-radius: 4px;
+  }
+  #cart-items-list::-webkit-scrollbar-thumb {
+    background: rgba(138,130,120,0.3);
+    border-radius: 4px;
+  }
+  #cart-items-list::-webkit-scrollbar-thumb:hover {
+    background: var(--gold);
+  }
+  /* =========================================
+     АДАПТАЦІЯ ДЛЯ МОБІЛЬНИХ ПРИСТРОЇВ (RESPONSIVE)
+     ========================================= */
+/* Ховаємо дублікат кнопки на комп'ютері */
+  .mobile-only-btn { display: none; }
+  /* Планшети (до 1024px) */
+  @media (max-width: 1024px) {
+    .hero-stats { grid-template-columns: repeat(2, 1fr); gap: 24px; border: none; padding-top: 0; }
+    .hero-stat { border-right: none; border-bottom: 0.5px solid rgba(138,130,120,0.15); padding-bottom: 16px; padding-right: 0; }
+    .locations-grid, .features-grid, .products-grid { grid-template-columns: repeat(2, 1fr); }
+    .loc-card.featured { grid-row: auto; grid-column: 1 / -1; }
+    .about-pillars, .g-footer { grid-template-columns: repeat(2, 1fr); }
+    .contact-layout, .about-intro { gap: 40px; }
+    .map-layout { grid-template-columns: 250px 1fr; }
+    .admin-dashboard { grid-template-columns: 200px 1fr; gap: 20px; padding: 0 24px 100px; }
+  }
+
+  /* Смартфони (до 768px) */
+  @media (max-width: 768px) {
+/* Бургер-меню для мобільних */
+    .g-nav { padding: 0 20px; justify-content: space-between; }
+    .g-logo { margin-top: 0; font-size: 24px; }
+    .g-nav-cta { display: none; }
+    .mobile-menu-btn { display: block; } /* Показуємо кнопку */
+    
+    .g-nav-links {
+      position: fixed; top: 64px; left: 0; width: 100%; height: calc(100vh - 64px);
+      background: rgba(10,10,10,0.98); border-top: 0.5px solid rgba(201,168,76,0.2);
+      flex-direction: column; justify-content: center; align-items: center; gap: 40px;
+      z-index: 9999; backdrop-filter: blur(10px); margin: 0;
+      /* Ховаємо меню за межі екрана */
+      transform: translateY(-150%); opacity: 0; transition: all 0.4s ease;
+    }
+    /* Клас, який буде відкривати меню */
+    .g-nav-links.open { transform: translateY(0); opacity: 1; }
+    .g-nav-links li a { font-size: 16px; letter-spacing: 0.15em; padding: 10px; }
+    
+    
+    /* Відступи для мобільних екранів */
+    #gastro-app { padding-bottom: 0; } /* Прибрали відступ знизу, бо меню тепер там немає */
+    .hero, .section, .page-hero, .loc-list, .map-container, .contact-layout, .about-intro, .about-pillars, .about-timeline, .products-grid, .g-footer, .footer-bottom, .filters-bar {
+      padding-left: 20px; padding-right: 20px;
+    }
+    
+    /* HERO Секція - ВИПРАВЛЕННЯ НАКЛАДАННЯ */
+    .hero { min-height: auto; padding-top: 40px; padding-bottom: 60px; justify-content: flex-start; }
+    .hero-bg-text { font-size: 90px; right: 0; top: 15%; opacity: 0.03; }
+    .hero-title { font-size: 44px; margin-top: 20px; }
+    .hero-subtitle { margin-bottom: 32px; font-size: 15px; }
+    .hero-actions { flex-direction: column; align-items: stretch; gap: 16px; }
+    .hero-actions button { width: 100%; }
+    
+    /* Відклеюємо статистику і ставимо її під кнопки */
+    .hero-stats { 
+      position: relative; bottom: auto; left: auto; right: auto; 
+      margin-top: 48px; padding-top: 24px; 
+      border-top: 0.5px solid rgba(201,168,76,0.2); 
+    }
+    
+    /* Тексти */
+    .section-title, .page-title, .contact-info-title, .about-big-text { font-size: 38px; }
+
+    /* Складаємо сітки в одну колонку */
+    .locations-grid, .features-grid, .products-grid, .about-pillars, .g-footer, .contact-layout, .about-intro {
+      grid-template-columns: 1fr;
+    }
+    
+    /* Спрощуємо список локацій */
+    .loc-row { grid-template-columns: 40px 1fr; gap: 16px; }
+    .loc-row > div:nth-child(3), .loc-row > div:nth-child(4), .loc-row > div:nth-child(6) { display: none; }
+    .loc-row-score-val { text-align: left; }
+
+    /* Карта складається вертикально */
+    .map-layout { grid-template-columns: 1fr; display: flex; flex-direction: column-reverse; }
+    .map-viz { min-height: 400px; }
+    .map-sidebar { max-height: 300px; }
+    
+    /* Адмінка та Форми */
+    .admin-dashboard { grid-template-columns: 1fr; padding: 0 20px 100px; }
+    .admin-sidebar { flex-direction: row; overflow-x: auto; white-space: nowrap; border-right: none; border-bottom: 0.5px solid rgba(138,130,120,0.15); padding-bottom: 0; }
+    .admin-tab-btn { border-bottom: none; border-left: none; padding: 16px; }
+    .admin-tab-btn.active { border-left: none; border-bottom: 2px solid var(--gold); background: transparent; }
+    .admin-panel-content { padding: 20px; }
+    .form-row[style] { grid-template-columns: 1fr !important; }
+    
+    /* Кошик та Фільтри */
+    .modal-content { padding: 24px; margin: 16px; width: calc(100% - 32px); }
+    .cart-floating-btn { bottom: 20px; right: 20px; } /* Піднімаємо кошик над мобільним меню */
+    .filters-bar { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 16px; margin-bottom: 20px; }
+    .filter-btn { white-space: nowrap; }
+  }
+  /* СТИЛІ ДЛЯ AI ЧАТ-ГІДА */
+  .ai-chat-btn { position: fixed; bottom: 40px; left: 40px; background: #1A1A1A; color: var(--gold); border: 0.5px solid var(--gold); border-radius: 50px; padding: 16px 24px; font-family: 'Inter', sans-serif; font-size: 13px; letter-spacing: 0.05em; text-transform: uppercase; cursor: pointer; box-shadow: 0 4px 25px rgba(201,168,76,0.15); z-index: 99; transition: all 0.3s ease; }
+  .ai-chat-btn:hover { background: var(--gold); color: var(--noir); transform: scale(1.05); }
+  .ai-chat-window { position: fixed; bottom: 110px; left: 40px; width: 360px; height: 480px; background: var(--surface); border: 0.5px solid rgba(201,168,76,0.4); box-shadow: 0 10px 40px rgba(0,0,0,0.8); z-index: 1000; display: none; flex-direction: column; transition: all 0.3s ease; }
+  .ai-chat-window.active { display: flex; }
+  .ai-chat-header { background: var(--slate); padding: 16px 20px; border-bottom: 0.5px solid rgba(201,168,76,0.2); display: flex; justify-content: space-between; align-items: center; }
+  .ai-chat-title { font-family: 'Cormorant Garamond', serif; font-size: 18px; color: var(--gold); font-weight: 500; letter-spacing: 0.05em; }
+  .ai-chat-close { background: transparent; border: none; color: var(--stone); font-size: 24px; cursor: pointer; line-height: 1; }
+  .ai-chat-close:hover { color: var(--gold); }
+  .ai-chat-messages { flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; scroll-behavior: smooth; }
+  .chat-msg { max-width: 85%; padding: 10px 14px; font-size: 13px; line-height: 1.5; border-radius: 4px; word-wrap: break-word; }
+  .chat-msg.user { background: rgba(201,168,76,0.1); color: var(--ivory); align-self: flex-end; border-bottom-right-radius: 0; border: 0.5px solid rgba(201,168,76,0.2); }
+  .chat-msg.ai { background: var(--slate); color: var(--stone-light); align-self: flex-start; border-bottom-left-radius: 0; border: 0.5px solid rgba(138,130,120,0.2); }
+  .ai-chat-input-area { padding: 14px; border-top: 0.5px solid rgba(138,130,120,0.2); display: flex; gap: 10px; background: var(--slate); }
+  .ai-chat-input { flex-grow: 1; background: rgba(255,255,255,0.03); border: 0.5px solid rgba(138,130,120,0.25); color: var(--ivory); padding: 10px 14px; font-size: 13px; font-family: 'Inter', sans-serif; outline: none; }
+  .ai-chat-input:focus { border-color: var(--gold); }
+  .ai-chat-send { background: var(--gold); color: var(--noir); border: none; padding: 10px 16px; font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; cursor: pointer; font-family: 'Inter', sans-serif; font-weight: 500; }
+  
+  @media (max-width: 768px) {
+    /* Піднімаємо вікно чату ще вище, щоб не перекривало кнопки */
+    .ai-chat-window { width: calc(100% - 40px); height: 420px; bottom: 140px; left: 20px; right: 20px; }
+    
+    /* Переносимо AI-кнопку вправо, рівно НАД кошиком */
+    .ai-chat-btn { 
+      bottom: 85px; right: 20px; left: auto; 
+      padding: 12px 18px; font-size: 11px; z-index: 100; 
+    }
+    
+    /* Фіксуємо кошик у самому правому куті */
+    .cart-floating-btn { 
+      bottom: 20px; right: 20px; left: auto; 
+      padding: 12px 18px; font-size: 12px; z-index: 99; 
+    }
+  }
+  /* СТИЛІ ДЛЯ TELEGRAM-БОТА ТА ЛОАДЕРА */
+  .telegram-btn { position: fixed; bottom: 110px; right: 40px; background: #2AABEE; color: #fff; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(42,171,238,0.3); z-index: 99; text-decoration: none; transition: transform 0.3s; }
+  .telegram-btn:hover { transform: scale(1.1); color: #fff; }
+  .telegram-icon { width: 28px; height: 28px; fill: currentColor; }
+  
+  @keyframes pulseLoader { 0% { opacity: 0.5; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0.5; transform: scale(0.9); } }
+  
+  @media (max-width: 768px) { 
+    .telegram-btn { bottom: 85px; right: 20px; width: 48px; height: 48px; }
+    .telegram-icon { width: 24px; height: 24px; }
+  }
+</style>
+
+<div id="gastro-app">
+<div id="global-loader" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--noir); z-index: 999999; display: flex; align-items: center; justify-content: center; transition: opacity 0.5s ease;">
+    <div style="font-family: 'Cormorant Garamond', serif; font-size: 48px; color: var(--gold); animation: pulseLoader 1.5s infinite;">Gastro<em style="font-style: italic;">Intel</em></div>
+  </div>
+<nav class="g-nav">
+    <div class="g-logo" onclick="window.location.hash='home'" style="cursor: pointer;">Gastro<span>Intel</span></div>
+    
+    <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
+    
+    <ul class="g-nav-links" id="mobile-nav">
+      <li><a onclick="showPage('home')" class="active" id="nav-home">Головна</a></li>
+      <li><a onclick="showPage('locations')" id="nav-locations">Локації</a></li>
+      <li><a onclick="showPage('map')" id="nav-map">Карта</a></li>
+      <li><a onclick="showPage('products')" id="nav-products">Крафтові продукти</a></li>
+      <li><a onclick="showPage('about')" id="nav-about">Про систему</a></li>
+      <li><a onclick="showPage('contact')" id="nav-contact">Контакти</a></li>
+
+      <li class="mobile-only-btn"><button class="btn-primary" onclick="showPage('contact')">Долучитися</button></li>
+    </ul>
+    <button class="g-nav-cta" onclick="showPage('contact')">Долучитися</button>
+  </nav>
+
+  <div class="page active" id="page-home">
+    <section class="hero">
+      <div class="hero-bg-text">GASTRO</div>
+      <div class="hero-eyebrow">Інтелектуальна система регіону</div>
+      <h1 class="hero-title">
+        Відкривай смаки<br>
+        <em>регіону</em> розумно
+      </h1>
+      <div class="hero-divider"></div>
+      <p class="hero-subtitle">Перша AI-платформа популяризації гастрономічних локацій Рівненщини — від аутентичних ресторанів до унікальних гастрономічних маршрутів.</p>
+      <div class="hero-actions">
+        <button class="btn-primary" onclick="showPage('locations')">Дослідити локації</button>
+        <button class="btn-outline" onclick="showPage('about')">Про проєкт</button>
+      </div>
+<div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 20px; border-top: 0.5px solid rgba(201,168,76,0.2); padding-top: 40px; margin-top: 60px;">
+  
+  <div>
+    <div id="public-stat-locs" style="font-family: 'Cormorant Garamond', serif; font-size: 48px; color: var(--ivory); line-height: 1;">0</div>
+    <div style="font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--stone); margin-top: 8px;">Гастрономічних локацій</div>
+  </div>
+
+  <div>
+    <div id="public-stat-prods" style="font-family: 'Cormorant Garamond', serif; font-size: 48px; color: var(--ivory); line-height: 1;">0</div>
+    <div style="font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--stone); margin-top: 8px;">Крафтових продуктів</div>
+  </div>
+
+  <div>
+    <div id="public-stat-producers" style="font-family: 'Cormorant Garamond', serif; font-size: 48px; color: var(--ivory); line-height: 1;">0</div>
+    <div style="font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--stone); margin-top: 8px;">Унікальних виробників</div>
+  </div>
+
+  <div>
+    <div style="font-family: 'Cormorant Garamond', serif; font-size: 48px; color: var(--gold); line-height: 1;">98<span style="font-size: 24px;">%</span></div>
+    <div style="font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--stone); margin-top: 8px;">Точність рекомендацій AI</div>
+  </div>
+
+</div>
+    </section>
+
+    <div class="gold-line"></div>
+
+    <section class="section">
+      <div class="section-header">
+        <div>
+          <div class="section-eyebrow">Рекомендовані</div>
+          <h2 class="section-title">Локації <em>тижня</em></h2>
+        </div>
+        <a class="section-link" onclick="showPage('locations')">Всі локації <i class="ti ti-arrow-right" aria-hidden="true"></i></a>
+      </div>
+      
+      <div class="locations-grid" id="featured-locations-grid">
+         </div>
+      
+    </section>
+
+    <section class="section" style="background: var(--surface);">
+      <div class="section-header">
+        <div>
+          <div class="section-eyebrow">Можливості системи</div>
+          <h2 class="section-title">Технологія <em>смаку</em></h2>
+        </div>
+      </div>
+      <div class="features-grid">
+        <div class="feat-card">
+          <div class="feat-icon"><i class="ti ti-brain" aria-hidden="true"></i></div>
+          <div class="feat-title">AI-Рекомендації</div>
+          <div class="feat-desc">Система аналізує ваші вподобання, сезон, бюджет та локацію, щоб запропонувати ідеальні гастрономічні точки регіону.</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><i class="ti ti-map-2" aria-hidden="true"></i></div>
+          <div class="feat-title">Інтерактивна Карта</div>
+          <div class="feat-desc">Географічна візуалізація усіх гастро-локацій регіону з фільтрацією за типом, рейтингом та ціновою категорією.</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><i class="ti ti-route" aria-hidden="true"></i></div>
+          <div class="feat-title">Гастромаршрути</div>
+          <div class="feat-desc">Авторські маршрути гастрономічного туризму — від одноденних прогулянок до багатоденних подорожей регіоном.</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><i class="ti ti-chart-bar" aria-hidden="true"></i></div>
+          <div class="feat-title">Аналітика Регіону</div>
+          <div class="feat-desc">Дані про гастрономічний потенціал кожного районного центру: популярність, сезонність, тенденції.</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><i class="ti ti-users" aria-hidden="true"></i></div>
+          <div class="feat-title">Спільнота</div>
+          <div class="feat-desc">Платформа для гастрономічних ентузіастів: відгуки, рецепти, анонси подій та обмін знахідками.</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><i class="ti ti-plant" aria-hidden="true"></i></div>
+          <div class="feat-title">Локальні Продукти</div>
+          <div class="feat-desc">Каталог виробників регіону — від фермерів до ремісничих майстерень. Пряма підтримка місцевої економіки.</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="gold-line"></div>
+
+    <div class="g-footer">
+      <div>
+        <div class="footer-logo">Gastro<span>Intel</span></div>
+        <p class="footer-desc">Інтелектуальна система популяризації гастрономічних локацій та автентичних поліських делікатесів.</p>
+      </div>
+      <div>
+        <div class="footer-col-title">Платформа</div>
+        <ul class="footer-links">
+          <li><a onclick="showPage('locations')">Всі локації</a></li>
+          <li><a onclick="showPage('map')">Карта регіону</a></li>
+          <li><a onclick="showPage('products')">Замовити мацик</a></li>
+          <li><a onclick="showPage('home')">Рейтинги AI</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">Інформація</div>
+        <ul class="footer-links">
+          <li><a onclick="showPage('about')">Про проєкт</a></li>
+          <li><a onclick="showPage('contact')">Партнерам</a></li>
+          <li><a onclick="showPage('contact')">API для бізнесу</a></li>
+          <li><a onclick="showPage('contact')">Контакти</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">Слідкуй</div>
+        <ul class="footer-links">
+          <li><a href="https://www.instagram.com/matsuk_ua/" target="_blank">Instagram</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2026 GastroIntel. Рівненська область</div>
+      <div class="footer-tagline">«Регіон має смак — ми його розкриваємо»</div>
+    </div>
+  </div>
+
+  <div class="page" id="page-locations">
+    <div class="page-hero">
+      <div class="page-hero-label">Каталог</div>
+      <h1 class="page-title">Гастрономічні<br><em>локації</em></h1>
+      <p class="page-subtitle">347 ретельно відібраних ресторанів, кафе, ринків та виробників Рівненщини з AI-рейтингом та верифікованими відгуками.</p>
+    </div>
+    
+    <div class="filters-bar">
+      <button class="filter-btn active" onclick="applyFilter('Всі', this)">Всі</button>
+      <button class="filter-btn" onclick="applyFilter('Регіональна кухня', this)">Ресторани</button>
+      <button class="filter-btn" onclick="applyFilter('Крафтове пиво', this)">Кафе та броварні</button>
+      <button class="filter-btn" onclick="applyFilter('Фермерська садиба', this)">Фермерські садиби</button>
+      <button class="filter-btn" onclick="applyFilter('Ринок', this)">Ринки</button>
+      <button class="filter-btn" onclick="applyFilter('Маршрут', this)">Маршрути</button>
+    </div>
+    
+    <div class="loc-list">
+      </div>
+    <div class="gold-line" style="margin-top:64px;"></div>
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2026 GastroIntel · Рівненська область</div>
+      <div class="footer-tagline">«Регіон має смак — ми його розкриваємо»</div>
+    </div>
+  </div>
+
+  <div class="page" id="page-map">
+    <div class="page-hero" style="padding-bottom:40px;">
+      <div class="page-hero-label">Навігація</div>
+      <h1 class="page-title">Карта <em>регіону</em></h1>
+      <p class="page-subtitle">Інтерактивна карта гастрономічних локацій Рівненщини. Натисніть на маркер для детальної інформації.</p>
+    </div>
+    <div class="map-container">
+      <div class="map-layout">
+        
+        <div class="map-sidebar">
+          <input class="map-search" id="map-search-input" type="text" placeholder="Пошук локацій..." />
+          <div id="map-sidebar-list" style="overflow-y: auto; max-height: 500px;"></div>
+        </div>
+        
+        <div class="map-viz">
+          <div id="real-interactive-map" style="width: 100%; height: 100%; min-height: 500px; border-radius: 12px; z-index: 1;"></div>
+        </div>
+        
+      </div>
+  </div>
+    <div class="gold-line"></div>
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2026 GastroIntel · Рівненська область</div>
+      <div class="footer-tagline">«Регіон має смак — ми його розкриваємо»</div>
+    </div>
+  </div>
+
+  <div class="page" id="page-products">
+    <div class="page-hero">
+      <div class="page-hero-label">Локальні делікатеси</div>
+      <h1 class="page-title">Справжній <em>мацик</em></h1>
+      <p class="page-subtitle">Каталог крафтової м'ясної продукції від найкращих виробників Полісся. Замовляйте з прямою доставкою.</p>
+    </div>
+    
+    <div class="filters-bar" style="display: flex; align-items: flex-end; flex-wrap: wrap; gap: 24px; padding: 28px 48px; border-bottom: 0.5px solid rgba(138,130,120,0.12);">
+      <div style="flex-grow: 1; max-width: 300px;">
+        <label style="display: block; font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--stone); margin-bottom: 8px;">Категорія продукції</label>
+        <select class="form-select" id="filter-category" onchange="applyComplexFilter()">
+          <option value="Всі">Всі категорії</option>
+          <option value="Сир">Сир</option>
+          <option value="Печена продукція">Печена продукція</option>
+          <option value="Сиров'ялені делікатеси">Сиров'ялені делікатеси</option>
+          <option value="Копчена продукція">Копчена продукція</option>
+          <option value="Снеки">Снеки</option>
+          <option value="Подарункові корзини">Подарункові корзини</option>
+        </select>
+      </div>
+
+      <div style="flex-grow: 1; max-width: 300px;">
+        <label style="display: block; font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--stone); margin-bottom: 8px;">Виробник (Фірма)</label>
+        <select class="form-select" id="filter-producer" onchange="applyComplexFilter()">
+          <option value="Всі">Всі виробники</option>
+          </select>
+      </div>
+    </div>
+    
+    <div class="products-grid" id="dynamic-products-grid"></div>
+
+    <div class="gold-line"></div>
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2026 GastroIntel · Рівненська область</div>
+      <div class="footer-tagline">«Регіон має смак — ми його розкриваємо»</div>
+    </div>
+  </div>
+
+  <div class="page" id="page-about">
+    <div class="about-intro">
+      <div>
+        <div class="section-eyebrow" style="margin-bottom:20px;">Про систему</div>
+        <h1 class="about-big-text">Розумна<br>популяризація<br><em>смаків</em><br>Рівненщини</h1>
+      </div>
+      <div>
+        <div class="about-body">
+          <p>GastroIntel — перша в Україні регіональна AI-платформа, яка систематизує, аналізує та популяризує гастрономічний потенціал окремого регіону. Ми починаємо з Рівненщини — землі, де поліська самобутність зустрічається з сучасними кулінарними тенденціями.</p>
+          <p>Наша місія — зробити гастрономічний туризм регіону доступним, зрозумілим і привабливим як для місцевих жителів, так і для гостей. Ми з'єднуємо людей зі справжніми смаками місця.</p>
+          <p>Штучний інтелект аналізує сотні параметрів — від якості інгредієнтів до атмосфери — щоб надати персоналізовані рекомендації, які справді відповідають вашим очікуванням.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="about-pillars">
+      <div class="pillar">
+        <div class="pillar-num">I</div>
+        <div class="pillar-title">Автентичність регіону</div>
+        <div class="pillar-desc">Ми зберігаємо та популяризуємо унікальні кулінарні традиції Полісся, які передаються поколіннями.</div>
+      </div>
+      <div class="pillar">
+        <div class="pillar-num">II</div>
+        <div class="pillar-title">Технологічна точність</div>
+        <div class="pillar-desc">AI-алгоритми обробляють тисячі відгуків, факторів якості та вподобань для точних рекомендацій.</div>
+      </div>
+      <div class="pillar">
+        <div class="pillar-num">III</div>
+        <div class="pillar-title">Підтримка місцевих</div>
+        <div class="pillar-desc">Кожна рекомендація — це реальна підтримка місцевих виробників, фермерів та рестораторів регіону.</div>
+      </div>
+      <div class="pillar">
+        <div class="pillar-num">IV</div>
+        <div class="pillar-title">Сталий розвиток</div>
+        <div class="pillar-desc">Розвиток гастрономічного туризму як інструменту довгострокового економічного зростання регіону.</div>
+      </div>
+    </div>
+
+    <div class="about-timeline">
+      <div style="margin-bottom:48px;">
+        <div class="section-eyebrow">Хронологія</div>
+        <h2 class="section-title">Шлях <em>проєкту</em></h2>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-year">2022</div>
+        <div class="timeline-line"></div>
+        <div class="timeline-content">
+          <div class="timeline-title">Початок дослідження</div>
+          <div class="timeline-desc">Перший польовий аудит гастрономічних локацій Рівненщини. Опитування 200+ рестораторів та понад 1000 відвідувачів регіону.</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-year">2023</div>
+        <div class="timeline-line"></div>
+        <div class="timeline-content">
+          <div class="timeline-title">Розробка AI-моделі</div>
+          <div class="timeline-desc">Створення інтелектуального алгоритму рейтингування локацій на основі мультипараметричного аналізу. Перша beta-версія для 50 тестових локацій.</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-year">2024</div>
+        <div class="timeline-line"></div>
+        <div class="timeline-content">
+          <div class="timeline-title">Публічний запуск</div>
+          <div class="timeline-desc">Відкриття платформи для широкої аудиторії. 200 верифікованих локацій, партнерство з Рівненською ОДА та туристичними агенціями.</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-year">2025</div>
+        <div class="timeline-line"></div>
+        <div class="timeline-content">
+          <div class="timeline-title">Масштабування</div>
+          <div class="timeline-desc">347 локацій, 12K активних користувачів. Запуск мобільного додатку та API для партнерів. Перший гастрономічний фестиваль під егідою GastroIntel.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="gold-line"></div>
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2026 GastroIntel · Рівненська область</div>
+      <div class="footer-tagline">«Регіон має смак — ми його розкриваємо»</div>
+    </div>
+  </div>
+
+  <div class="page" id="page-contact">
+    <div class="page-hero">
+      <div class="page-hero-label">Зв'язок</div>
+      <h1 class="page-title">Написати <em>нам</em></h1>
+      <p class="page-subtitle">Маєте ресторан, ферму або виробництво? Хочете стати частиною гастрономічної карти Рівненщини?</p>
+    </div>
+    <div class="contact-layout">
+      <div>
+        <div class="contact-info-title">Долучайтесь до<br><em>платформи</em></div>
+        <p class="contact-info-body">Ми завжди відкриті до співпраці з власниками гастрономічних локацій, виробниками продуктів харчування та гастрономічними ентузіастами регіону.</p>
+        <div class="contact-detail">
+          <div class="contact-detail-label">Адреса</div>
+          <div class="contact-detail-val">вул. Соборна 14, Рівне</div>
+        </div>
+        <div class="contact-detail">
+          <div class="contact-detail-label">Email</div>
+          <div class="contact-detail-val">hello@gastrointel.ua</div>
+        </div>
+        <div class="contact-detail">
+          <div class="contact-detail-label">Телефон</div>
+          <div class="contact-detail-val">+380 (362) 22-33-44</div>
+        </div>
+        <div class="contact-detail">
+          <div class="contact-detail-label">Графік</div>
+          <div class="contact-detail-val">Пн–Пт, 9:00–18:00</div>
+        </div>
+      </div>
+
+      <form class="contact-form" id="gastro-contact-form" onsubmit="submitContactForm(event)">
+        <div class="form-row">
+          <label class="form-label">Ваше ім'я</label>
+          <input class="form-input" id="form-name" type="text" placeholder="Іван Шевченко" pattern="^[a-zA-Zа-яА-ЯіІїЇєЄґҐ\s\-]+$" title="Ім'я повинно містити лише літери" minlength="2" maxlength="50" required />
+        </div>
+        <div class="form-row" style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+          <div>
+            <label class="form-label">Email</label>
+            <input class="form-input" id="form-email" type="email" placeholder="ivan@example.ua" maxlength="100" required />
+          </div>
+          <div>
+            <label class="form-label">Телефон</label>
+            <input class="form-input" id="form-phone" type="tel" placeholder="+380XXXXXXXXX" pattern="^(\+380|0)[0-9]{9}$" title="Введіть номер у форматі +380XXXXXXXXX або 0XXXXXXXXX (без пробілів та дефісів)" required />
+          </div>
+        </div>
+        <div class="form-row">
+          <label class="form-label">Тип запиту</label>
+          <select class="form-select" id="form-type">
+            <option value="Додати локацію">Додати мою локацію до каталогу</option>
+            <option value="Партнерство">Стати партнером</option>
+            <option value="Технічне">Технічне питання</option>
+            <option value="Медіа">Медіа та PR</option>
+            <option value="Інше">Інше</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="form-label">Назва локації / бізнесу</label>
+          <input class="form-input" id="form-business" type="text" placeholder="Ресторан, кафе, ферма, виробник..." maxlength="100" />
+        </div>
+        <div class="form-row">
+          <label class="form-label">Повідомлення</label>
+          <textarea class="form-input" id="form-msg" placeholder="Розкажіть про вашу локацію або запит..." minlength="10" maxlength="1000" required></textarea>
+        </div>
+        <button type="submit" class="btn-primary" id="form-submit-btn" style="width:100%; padding:18px; font-size:12px;">Надіслати повідомлення</button>
+        <div id="form-feedback" style="margin-top: 16px; font-size: 13px; text-align: center; display: none;"></div>
+      </form>
+
+    </div>
+    <div class="gold-line"></div>
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2026 GastroIntel · Рівненська область</div>
+      <div class="footer-tagline">«Регіон має смак — ми його розкриваємо»</div>
+    </div>
+  </div>
+
+  <div class="page" id="page-admin">
+    <div class="page-hero" style="padding-bottom: 40px;">
+      <div class="page-hero-label">Система управління</div>
+      <h1 class="page-title">Admin <em>Dashboard</em></h1>
+    </div>
+
+    <div id="admin-login-screen" style="max-width: 400px; margin: 40px auto 100px; background: var(--surface); padding: 40px; border: 0.5px solid rgba(201,168,76,0.3); text-align: center;">
+        <h2 style="font-family:'Cormorant Garamond', serif; font-size:32px; color:var(--gold); margin-bottom: 24px;">Вхід у систему</h2>
+          <form onsubmit="loginAdmin(event)">
+            <input type="text" id="admin-username" autocomplete="username" style="display: none;" aria-hidden="true">
+            
+            <input type="password" id="admin-password" class="form-input" placeholder="Введіть пароль..." autocomplete="current-password" required style="margin-bottom: 16px; text-align: center; letter-spacing: 0.2em;">
+            <button type="submit" class="btn-primary" style="width: 100%; padding: 14px;">Увійти</button>
+          </form>
+        <div id="login-error" style="color: #ff6b6b; font-size: 12px; margin-top: 12px; display: none;">Невірний пароль!</div>
+    </div>
+    
+    <div class="admin-dashboard" id="admin-dashboard-screen" style="display: none;">
+      <div class="admin-sidebar">
+        <button class="admin-tab-btn active" id="btn-tab-stats" onclick="switchAdminTab('stats')">📊 Статистика</button>
+        <button class="admin-tab-btn" id="btn-tab-orders" onclick="switchAdminTab('orders')">🛒 Замовлення</button>
+        <button class="admin-tab-btn" id="btn-tab-products" onclick="switchAdminTab('products')">📦 Товари (Мацики)</button>
+        <button class="admin-tab-btn" id="btn-tab-locations" onclick="switchAdminTab('locations')">📍 Локації</button>
+        <button class="admin-tab-btn" id="btn-tab-messages" onclick="switchAdminTab('messages')">✉️ Повідомлення</button>
+        <button class="admin-tab-btn" onclick="logoutAdmin()" style="color: #ff6b6b; margin-top: 40px; border-top: 0.5px solid rgba(138,130,120,0.1);">🚪 Вийти</button>
+      </div>
+
+      <div class="admin-panel-content">
+        
+        <div class="admin-tab-pane active" id="admin-tab-stats">
+          <h2 style="font-family:'Cormorant Garamond', serif; font-size:28px; color:var(--gold); margin-bottom:24px;">Статистика платформи</h2>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+              <div class="msg-card" style="text-align: center;">
+                  <div style="font-size: 48px; color: var(--gold); font-family: 'Cormorant Garamond', serif;" id="stat-locs">0</div>
+                  <div style="font-size: 10px; text-transform: uppercase; color: var(--stone); letter-spacing: 0.1em;">Локацій в базі</div>
+              </div>
+              <div class="msg-card" style="text-align: center;">
+                  <div style="font-size: 48px; color: var(--gold); font-family: 'Cormorant Garamond', serif;" id="stat-prods">0</div>
+                  <div style="font-size: 10px; text-transform: uppercase; color: var(--stone); letter-spacing: 0.1em;">Товарів у каталозі</div>
+              </div>
+              <div class="msg-card" style="text-align: center;">
+                  <div style="font-size: 48px; color: var(--gold); font-family: 'Cormorant Garamond', serif;" id="stat-orders">0</div>
+                  <div style="font-size: 10px; text-transform: uppercase; color: var(--stone); letter-spacing: 0.1em;">Успішних замовлень</div>
+              </div>
+              <div class="msg-card" style="text-align: center;">
+                  <div style="font-size: 48px; color: var(--gold); font-family: 'Cormorant Garamond', serif;" id="stat-msgs">0</div>
+                  <div style="font-size: 10px; text-transform: uppercase; color: var(--stone); letter-spacing: 0.1em;">Вхідних повідомлень</div>
+              </div>
+          </div>
+        </div>
+
+        <div class="admin-tab-pane" id="admin-tab-orders">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+             <h2 style="font-family:'Cormorant Garamond', serif; font-size:28px; color:var(--gold);">Замовлення (Кошик)</h2>
+             <button class="btn-outline" style="padding:6px 16px; font-size:9px;" onclick="loadAdminOrders()">🔄 Оновити</button>
+          </div>
+          <div id="admin-orders-list"></div>
+        </div>
+
+        <div class="admin-tab-pane" id="admin-tab-products">
+          <h2 id="admin-product-form-title" style="font-family:'Cormorant Garamond', serif; font-size:28px; margin-bottom:24px; color:var(--gold);">Додати новий продукт</h2>
+          <form class="contact-form" id="admin-product-form" onsubmit="submitNewProduct(event)">
+            <div class="form-row" style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+              <div><label class="form-label">Назва товару</label><input class="form-input" id="admin-name" type="text" required /></div>
+              <div><label class="form-label">Виробник</label><input class="form-input" id="admin-producer" type="text" required /></div>
+            </div>
+            <div class="form-row" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px;">
+              <div>
+                <label class="form-label">Категорія</label>
+                <select class="form-select" id="admin-cat">
+                  <option value="Сир">Сир</option>
+                  <option value="Печена продукція">Печена продукція</option>
+                  <option value="Сиров'ялені делікатеси">Сиров'ялені делікатеси</option>
+                  <option value="Копчена продукція">Копчена продукція</option>
+                  <option value="Снеки">Снеки</option>
+                  <option value="Подарункові корзини">Подарункові корзини</option>
+                </select>
+              </div>
+              <div><label class="form-label">Ціна (грн)</label><input class="form-input" id="admin-price" type="number" required /></div>
+              <div>
+                <label class="form-label">Вага / Об'єм</label>
+                <select class="form-select" id="admin-weight" required>
+                  <option value="100 г">100 г</option>
+                  <option value="200 г">200 г</option>
+                  <option value="300 г">300 г</option>
+                  <option value="400 г">400 г</option>
+                  <option value="500 г">500 г</option>
+                  <option value="1 кг">1 кг</option>
+                  <option value="1.5 кг">1.5 кг</option>
+                  <option value="0.5 л">0.5 л</option>
+                  <option value="1 л">1 л</option>
+                  <option value="1 шт">1 шт</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row" style="display:grid; grid-template-columns:2fr 1fr; gap:16px;">
+              <div>
+                <label class="form-label">Файл фото</label>
+                <input class="form-input" id="admin-file-chooser" type="file" accept="image/*" style="padding: 10px; cursor: pointer;" onchange="document.getElementById('admin-image').value = 'images/' + this.files[0].name" />
+                <input type="hidden" id="admin-image" value="images/" />
+              </div>
+              <div>
+                <label class="form-label">Тег (Хіт, Новинка)</label>
+                <select class="form-select" id="admin-tag">
+                  <option value="">Без тегу</option>
+                  <option value="Хіт">Хіт</option>
+                  <option value="Новинка">Новинка</option>
+                  <option value="Рекомендація">Рекомендація</option>
+                  <option value="Знижка">Знижка</option>
+                  <option value="Лімітовано">Лімітовано</option>
+                  <option value="Під Замовлення">Під Замовлення</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <label class="form-label" style="margin-bottom:0;">Опис товару</label>
+                <button type="button" class="btn-outline" style="padding:6px 12px; font-size:10px; border-color:var(--gold); color:var(--gold);" onclick="generateAIDescription()">✨ Згенерувати AI</button>
+              </div>
+              <textarea class="form-input" id="admin-desc" style="min-height: 100px; line-height: 1.6;" required></textarea>
+            </div>
+            <button type="submit" class="btn-primary" id="admin-submit-btn" style="width:100%; padding:14px;">Опублікувати товар</button>
+            <div id="admin-feedback" style="margin-top:16px; text-align:center; display:none; font-size:12px;"></div>
+          </form>
+          <div class="gold-line" style="margin: 40px 0 24px;"></div>
+          <h2 style="font-family:'Cormorant Garamond', serif; font-size:28px; margin-bottom:24px; color:var(--gold);">Існуючі товари у базі</h2>
+          <div id="admin-products-list"></div>
+        </div>
+
+        <div class="admin-tab-pane" id="admin-tab-locations">
+          <h2 style="font-family:'Cormorant Garamond', serif; font-size:28px; margin-bottom:24px; color:var(--gold);">Додати нову локацію</h2>
+          <form class="contact-form" id="admin-location-form" onsubmit="submitNewLocation(event)">
+            <div class="form-row" style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+              <div><label class="form-label">Назва закладу/місця</label><input class="form-input" id="loc-name" type="text" required /></div>
+              <div>
+                <label class="form-label">Категорія</label>
+                <select class="form-select" id="loc-cat">
+                  <option>Регіональна кухня</option>
+                  <option>Крафтове пиво</option>
+                  <option>Фермерська садиба</option>
+                  <option>Кафе та броварні</option>
+                  <option>Ринок</option>
+                  <option>Маршрут</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px;">
+              <div><label class="form-label">Місто (на карті)</label><select class="form-select" id="loc-city"><option>Рівне</option><option>Дубно</option><option>Острог</option><option>Корець</option><option>Здолбунів</option></select></div>
+              <div><label class="form-label">AI-Рейтинг (1-10)</label><input class="form-input" id="loc-rating" type="number" step="0.1" max="10" required /></div>
+              <div><label class="form-label">Бюджет (грн)</label><input class="form-input" id="loc-price" type="text" placeholder="300-500 грн" required /></div>
+            </div>
+            <div class="form-row" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px;">
+               <div><label class="form-label">Тег</label><input class="form-input" id="loc-tag" type="text" /></div>
+               <div><label class="form-label">Lat (GPS)</label><input class="form-input" id="loc-lat" type="number" step="0.0001" value="50.6199" required /></div>
+               <div><label class="form-label">Lng (GPS)</label><input class="form-input" id="loc-lng" type="number" step="0.0001" value="26.2516" required /></div>
+            </div>
+            <div class="form-row" style="background: rgba(201,168,76,0.05); padding: 16px; border: 0.5px solid rgba(201,168,76,0.2); margin-top: 16px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <label class="form-label" style="margin-bottom:0; color: var(--gold);">Відгуки клієнтів (Для AI-Аналітики)</label>
+                <button type="button" class="btn-outline" style="padding:6px 12px; font-size:10px; border-color:var(--gold); color:var(--gold); background: var(--noir);" onclick="calculateAIRating()">🧠 Аналізувати</button>
+              </div>
+              <textarea class="form-input" id="loc-reviews" style="min-height: 70px; background: rgba(10,10,10,0.5);" placeholder="Вставте сюди кілька відгуків з Google Maps або Instagram..."></textarea>
+              <div style="font-size: 10px; color: var(--stone); margin-top: 8px;">* Вставте текст відгуків і натисніть кнопку. ШІ проаналізує їх і автоматично заповнить поле "AI-Рейтинг".</div>
+            </div>
+            <div class="form-row">
+              <label class="form-label">Опис локації</label>
+              <textarea class="form-input" id="loc-desc" style="min-height: 80px;" required></textarea>
+            </div>
+            <button type="submit" class="btn-primary" id="loc-submit-btn" style="width:100%; padding:14px;">Опублікувати локацію</button>
+            <div id="loc-feedback" style="margin-top:16px; text-align:center; display:none; font-size:12px;"></div>
+          </form>
+        </div>
+
+        <div class="admin-tab-pane" id="admin-tab-messages">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+             <h2 style="font-family:'Cormorant Garamond', serif; font-size:28px; color:var(--gold);">Вхідні повідомлення</h2>
+             <button class="btn-outline" style="padding:6px 16px; font-size:9px;" onclick="loadAdminMessages()">🔄 Оновити</button>
+          </div>
+          <div id="admin-messages-list"></div>
+        </div>
+
+      </div>
+    </div>
+    <div class="gold-line"></div>
+  </div>
+  
+  <div id="toast-container"></div>
+  <button class="cart-floating-btn" id="cart-float-btn" onclick="openCartModal()">
+    🛒 Кошик (<span id="cart-count">0</span>) - <span id="cart-total">0</span> грн
+  </button>
+<button class="ai-chat-btn" id="ai-chat-toggle-btn" onclick="toggleAIChat()">✨ AI Гастро-Гід</button>
+  
+  <div class="ai-chat-window" id="ai-chat-window">
+    <div class="ai-chat-header">
+      <div class="ai-chat-title">GastroIntel AI-Гід</div>
+      <button class="ai-chat-close" onclick="toggleAIChat()">×</button>
+    </div>
+    <div class="ai-chat-messages" id="ai-chat-messages">
+      <div class="chat-msg ai">Вітаю на Рівненщині! 👋 Я ваш інтелектуальний гастро-експерт. Запитайте мене: куди сходити поїсти, де знайти унікальний гастромаршрут або який мацик замовити?</div>
+    </div>
+    <div class="ai-chat-input-area">
+      <input type="text" class="ai-chat-input" id="ai-chat-input" placeholder="Напишіть гіду..." onkeydown="if(event.key === 'Enter') sendAIChatMessage()">
+      <button class="ai-chat-send" onclick="sendAIChatMessage()">Надіслати</button>
+    </div>
+  </div>
+  <div id="order-modal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 500px;">
+      <button class="modal-close" onclick="closeOrderModal()">×</button>
+      <h3 style="font-family:'Cormorant Garamond', serif; font-size:28px; color:var(--gold); margin-bottom:24px; line-height: 1.1;">Ваш кошик</h3>
+      
+      <div id="cart-items-list" style="margin-bottom: 24px; max-height: 250px; overflow-y: auto;">
+         </div>
+      
+      <div style="display:flex; justify-content:space-between; font-size: 18px; margin-bottom: 24px; border-top: 1px solid var(--gold); padding-top: 16px;">
+        <span>Разом до сплати:</span>
+        <strong style="color:var(--gold);"><span id="cart-modal-total">0</span> грн</strong>
+      </div>
+
+      <form id="order-form" onsubmit="submitOrder(event)">
+        <div class="form-row">
+          <label class="form-label">Ваше ім'я</label>
+          <input class="form-input" id="order-name" type="text" placeholder="Наприклад, Олена" required>
+        </div>
+        <div class="form-row">
+          <label class="form-label">Телефон для зв'язку</label>
+          <input class="form-input" id="order-phone" type="tel" placeholder="+380XXXXXXXXX" pattern="^(\+380|0)[0-9]{9}$" required>
+        </div>
+        <button type="submit" class="btn-primary" id="order-submit-btn" style="width:100%; padding:16px; margin-top: 8px;">Підтвердити замовлення</button>
+        <div id="order-feedback" style="margin-top:16px; text-align:center; display:none; font-size:13px;"></div>
+      </form>
+    </div>
+  </div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// --- НАВІГАЦІЯ ТА ІСТОРІЯ ---
+function showPage(id, updateHistory = true) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  
+  document.querySelectorAll('.g-nav-links a').forEach(a => a.classList.remove('active'));
+  const navEl = document.getElementById('nav-' + id);
+  if (navEl) navEl.classList.add('active');
+  
+  // ЗАКРИВАЄМО МЕНЮ ПІСЛЯ КЛІКУ
+  const mobileNav = document.getElementById('mobile-nav');
+  if (mobileNav) mobileNav.classList.remove('open');
+  
+  document.getElementById('gastro-app').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  // 👇 ДОДАЙ ЦІ ТРИ РЯДКИ ДЛЯ КАРТИ 👇
+  if (id === 'map' && myMap) {
+    setTimeout(() => { myMap.invalidateSize(); }, 200);
+  }
+  // 👆 КІНЕЦЬ НОВОГО КОДУ 👆
+
+  if (updateHistory) {
+    window.history.pushState({ page: id }, "", `#${id}`);
+  }
+}
+// Відкриття/закриття бургер-меню
+function toggleMobileMenu() {
+    document.getElementById('mobile-nav').classList.toggle('open');
+}
+
+window.addEventListener('popstate', (event) => {
+  const pageId = event.state ? event.state.page : 'home';
+  showPage(pageId, false);
+});
+
+// --- ДАНІ ТА ЗАВАНТАЖЕННЯ ---
+let editingProductId = null; // Сюди буде записуватись ID товару, який ми редагуємо
+let allLocations = []; 
+let allProducts = [];
+// Завантажуємо кошик з пам'яті браузера, якщо він там є
+let cart = JSON.parse(localStorage.getItem('gastro_cart')) || [];
+
+const mapCityCoords = {
+  "Рівне": { x: 230, y: 185 },
+  "Острог": { x: 385, y: 155 },
+  "Дубно": { x: 340, y: 248 },
+  "Корець": { x: 290, y: 308 },
+  "Здолбунів": { x: 170, y: 285 }
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  const hash = window.location.hash.substring(1) || 'home';
+  showPage(hash, false);
+  loadLocations();
+  loadProducts();
+  updateCartUI(); // ВІДНОВЛЮЄМО КНОПКУ КОШИКА
+  loadPublicStats();
+
+  // Вимикаємо лоадер після завантаження сторінки
+  setTimeout(() => {
+    const loader = document.getElementById('global-loader');
+    if(loader) {
+      loader.style.opacity = '0';
+      setTimeout(() => loader.style.display = 'none', 500);
+    }
+  }, 800); // 0.8 сек для красивого ефекту
+});
+// --- ФУНКЦІЯ ДИНАМІЧНОЇ СТАТИСТИКИ ГОЛОВНОЇ СТОРІНКИ ---
+async function loadPublicStats() {
+  try {
+    // 1. Отримуємо локації
+    const locRes = await fetch('http://localhost:3000/api/locations');
+    const locations = await locRes.json();
+    const locElement = document.getElementById('public-stat-locs');
+    if (locElement) locElement.innerText = locations.length;
+
+    // 2. Отримуємо продукти
+    const prodRes = await fetch('http://localhost:3000/api/products');
+    const products = await prodRes.json();
+    const prodElement = document.getElementById('public-stat-prods');
+    if (prodElement) prodElement.innerText = products.length;
+
+    // 3. Вираховуємо унікальних виробників з продуктів
+    const uniqueProducers = [...new Set(products.map(p => p.producer))].filter(p => p && p.trim() !== "");
+    const producerElement = document.getElementById('public-stat-producers');
+    if (producerElement) producerElement.innerText = uniqueProducers.length;
+
+  } catch (error) {
+    console.error("Помилка завантаження реальної статистики:", error);
+  }
+}
+
+// --- ЛОГІКА ЛОКАЦІЙ ---
+async function loadLocations() {
+  try {
+    const response = await fetch('http://localhost:3000/api/locations');
+    allLocations = await response.json();
+    
+    renderLocationsList(allLocations);
+    renderMap(allLocations);
+    renderFeaturedLocations(allLocations);
+  } catch (error) {
+    console.error("Помилка завантаження локацій:", error);
+  }
+}
+
+function applyFilter(category, btnElement) {
+  document.querySelectorAll('#page-locations .filter-btn').forEach(b => b.classList.remove('active'));
+  btnElement.classList.add('active');
+
+  if (category === 'Всі') {
+    renderLocationsList(allLocations);
+  } else {
+    const filteredData = allLocations.filter(loc => loc.category === category);
+    renderLocationsList(filteredData);
+  }
+}
+
+function renderLocationsList(locations) {
+  const listContainer = document.querySelector('.loc-list');
+  if (!listContainer) return;
+  listContainer.innerHTML = '';
+
+  locations.forEach((loc, index) => {
+    const rankNum = String(index + 1).padStart(2, '0');
+    const scorePercent = (loc.ai_rating / 10) * 100;
+    const tagHtml = loc.tags && loc.tags.length > 0 ? `<span class="loc-row-tag">${loc.tags[0]}</span>` : '';
+
+    const rowHtml = `
+      <div class="loc-row reveal delay-${(index % 3) + 1}">
+        <div class="loc-rank">${rankNum}</div>
+        <div>
+          <div class="loc-row-name">${loc.name}</div>
+          <div class="loc-row-sub">${loc.city} · ${loc.category}</div>
+        </div>
+        <div>${tagHtml}</div>
+        <div>
+          <div style="font-size:11px; color:var(--stone); margin-bottom:6px;">AI-рейтинг</div>
+          <div class="loc-row-score-bar">
+            <div class="loc-row-score-fill" style="width:${scorePercent}%"></div>
+          </div>
+        </div>
+        <div class="loc-row-score-val" style="color:var(--gold)">${loc.ai_rating}</div>
+        <div style="font-size:11px; color:var(--stone); text-align:right;">${loc.price_range}</div>
+      </div>
+    `;
+    listContainer.insertAdjacentHTML('beforeend', rowHtml);
+  });
+}
+
+function renderFeaturedLocations(locations) {
+  const gridContainer = document.getElementById('featured-locations-grid');
+  if (!gridContainer) return;
+  gridContainer.innerHTML = '';
+  
+  const topLocations = locations.slice(0, 5);
+  topLocations.forEach((loc, index) => {
+    const rankNum = String(index + 1).padStart(2, '0');
+    const isFeatured = index === 0; 
+    const badgeText = loc.tags && loc.tags.length > 0 ? loc.tags[0] : 'Рекомендація';
+
+    let cardHtml = '';
+    if (isFeatured) {
+      cardHtml = `
+        <div class="loc-card featured" onclick="showPage('locations')">
+          <div class="loc-card-num">${rankNum}</div>
+          <div class="loc-card-badge">${badgeText}</div>
+          <div class="loc-card-name">${loc.name}</div>
+          <div class="loc-card-desc">${loc.description}</div>
+          <div class="loc-score">
+            <div class="loc-score-num">${loc.ai_rating}</div>
+            <div class="loc-score-label">/ 10<br>AI-рейтинг</div>
+          </div>
+          <div class="loc-card-meta">
+            <div class="loc-meta-item"><i class="ti ti-map-pin" aria-hidden="true"></i> ${loc.city}</div>
+            <div class="loc-meta-item"><i class="ti ti-currency-hryvnia" aria-hidden="true"></i> ${loc.price_range}</div>
+          </div>
+        </div>
+      `;
+    } else {
+      cardHtml = `
+        <div class="loc-card" onclick="showPage('locations')">
+          <div class="loc-card-num">${rankNum}</div>
+          <div class="loc-card-badge">${badgeText}</div>
+          <div class="loc-card-name">${loc.name}</div>
+          <div class="loc-card-desc" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${loc.description}</div>
+          <div class="loc-card-meta">
+            <div class="loc-meta-item"><i class="ti ti-map-pin" aria-hidden="true"></i> ${loc.city}</div>
+            <div class="loc-meta-item"><i class="ti ti-star" aria-hidden="true"></i> ${loc.ai_rating}</div>
+          </div>
+        </div>
+      `;
+    }
+    gridContainer.insertAdjacentHTML('beforeend', cardHtml);
+  });
+}
+
+// --- ЛОГІКА КАРТИ (Leaflet) ---
+let myMap = null; // Змінна для зберігання карти
+
+function renderMap(locations) {
+  const sidebarList = document.getElementById('map-sidebar-list');
+  if (!sidebarList) return;
+  sidebarList.innerHTML = '';
+
+  // 1. Якщо карта ще не створена - створюємо її
+  if (!myMap) {
+    // Центруємо на місті Рівне (зум 8)
+    myMap = L.map('real-interactive-map').setView([50.6199, 26.2516], 8);
+
+    // Додаємо стильний темний дизайн карти (Dark Matter)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap & CartoDB'
+    }).addTo(myMap);
+  } else {
+    // Якщо карта вже є (наприклад, після фільтрації), очищаємо старі маркери
+    myMap.eachLayer((layer) => {
+      if (layer instanceof L.Marker) layer.remove();
+    });
+  }
+
+  // 2. Створюємо кастомну золоту іконку для маркерів
+  const goldIcon = L.divIcon({
+    className: 'custom-gold-marker',
+    html: '<div style="background: var(--gold); width: 12px; height: 12px; border-radius: 50%; border: 3px solid #1A1A1A; box-shadow: 0 0 10px rgba(201,168,76,0.8);"></div>',
+    iconSize: [18, 18],
+    iconAnchor: [9, 9]
+  });
+
+  // 3. Додаємо маркери з бази даних
+  locations.forEach((loc) => {
+    if (loc.coordinates && loc.coordinates.lat && loc.coordinates.lng) {
+      
+      // Ставимо точку на карту
+      const marker = L.marker([loc.coordinates.lat, loc.coordinates.lng], { icon: goldIcon }).addTo(myMap);
+      
+      // Додаємо спливаюче вікно при кліку
+      marker.bindPopup(`
+        <div style="font-family: 'Inter', sans-serif; text-align: center;">
+          <strong style="color: #1A1A1A; font-size: 14px;">${loc.name}</strong><br>
+          <span style="color: #666; font-size: 12px;">${loc.city} · ⭐️ ${loc.ai_rating}</span>
+        </div>
+      `);
+
+      // Додаємо локацію в бокове меню
+      const sidebarItem = document.createElement('div');
+      sidebarItem.className = 'map-item';
+      sidebarItem.innerHTML = `
+        <div class="map-item-name">${loc.name}</div>
+        <div class="map-item-info"><span>${loc.city}</span><span style="color:var(--gold);">${loc.ai_rating} ★</span></div>
+      `;
+      
+      // При кліку на меню - карта плавно летить до точки
+      sidebarItem.onclick = () => {
+        myMap.flyTo([loc.coordinates.lat, loc.coordinates.lng], 14, { animate: true, duration: 1.5 });
+        setTimeout(() => marker.openPopup(), 1500);
+      };
+      
+      sidebarList.appendChild(sidebarItem);
+    }
+  });
+}
+
+function selectMapLocationById(id, x, y) {
+  const loc = allLocations.find(l => l.id === id);
+  if(loc) selectMapLocation(loc, x, y);
+}
+
+function selectMapLocation(loc, x, y) {
+  document.querySelectorAll('.map-item').forEach(item => item.classList.remove('selected'));
+  const activeItem = document.getElementById(`sidebar-item-${loc.id}`);
+  if (activeItem) activeItem.classList.add('selected');
+
+  document.querySelectorAll('.map-pin .pin-bg').forEach(bg => {
+     bg.setAttribute('r', '8');
+     bg.setAttribute('fill', 'rgba(201,168,76,0.15)');
+  });
+  document.querySelectorAll('.map-pin .pin-dot').forEach(dot => dot.setAttribute('fill', 'var(--gold)'));
+  
+  const activePin = document.getElementById(`pin-${loc.id}`);
+  if (activePin) {
+     activePin.querySelector('.pin-bg').setAttribute('r', '16');
+     activePin.querySelector('.pin-bg').setAttribute('fill', 'rgba(201,168,76,0.35)');
+     activePin.querySelector('.pin-dot').setAttribute('fill', '#fff');
+  }
+
+  const infoBox = document.getElementById('map-info-box');
+  document.getElementById('map-info-name').innerText = loc.name;
+  document.getElementById('map-info-sub').innerText = `${loc.city} · ${loc.category}`;
+  document.getElementById('map-info-score').innerText = loc.ai_rating;
+  infoBox.style.display = 'block';
+}
+
+// --- ЛОГІКА ТОВАРІВ ---
+async function loadProducts() {
+  try {
+    const response = await fetch('http://localhost:3000/api/products');
+    allProducts = await response.json();
+    
+    // Автоматично збираємо всіх унікальних виробників для фільтра
+    populateProducersList();
+    
+    renderProducts(allProducts);
+  } catch (error) { 
+    console.error("Помилка завантаження товарів:", error); 
+  }
+}
+
+// Функція, яка шукає всі фірми в базі і додає їх у Dropdown
+function populateProducersList() {
+  const producerSelect = document.getElementById('filter-producer');
+  if (!producerSelect) return;
+  
+  // Витягуємо унікальні назви фірм з усіх товарів
+  const uniqueProducers = [...new Set(allProducts.map(p => p.producer))];
+  
+  // Очищаємо список і залишаємо лише базовий пункт
+  producerSelect.innerHTML = '<option value="Всі">Всі виробники</option>';
+  
+  // Додаємо кожну знайдену фірму як опцію
+  uniqueProducers.forEach(producer => {
+    if(producer && producer.trim() !== "") {
+      producerSelect.innerHTML += `<option value="${producer}">${producer}</option>`;
+    }
+  });
+}
+
+// Нова комплексна функція фільтрації (за категорією І за виробником)
+function applyComplexFilter() {
+  const catValue = document.getElementById('filter-category').value;
+  const prodValue = document.getElementById('filter-producer').value;
+
+  let filteredData = allProducts;
+
+  // Фільтруємо за категорією (якщо обрано не "Всі")
+  if (catValue !== 'Всі') {
+    filteredData = filteredData.filter(prod => prod.category === catValue);
+  }
+  
+  // Далі фільтруємо результат ще й за фірмою (якщо обрано не "Всі")
+  if (prodValue !== 'Всі') {
+    filteredData = filteredData.filter(prod => prod.producer === prodValue);
+  }
+
+  // Відмальовуємо відфільтровані картки
+  renderProducts(filteredData);
+}
+
+function renderProducts(products) {
+  const container = document.getElementById('dynamic-products-grid');
+  if (!container) return;
+  container.innerHTML = '';
+
+// ПЕРЕВІРКА НА ПОРОЖНІЙ РЕЗУЛЬТАТ (Empty State)
+  if (products.length === 0) {
+    container.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; padding: 80px 20px; border: 0.5px dashed rgba(201,168,76,0.3); margin-top: 24px;">
+        <div style="font-size: 48px; margin-bottom: 16px;">🔍</div>
+        <h3 style="font-family:'Cormorant Garamond', serif; font-size:28px; color:var(--gold); margin-bottom:12px;">Нічого не знайдено</h3>
+        <p style="color:var(--stone-light); margin-bottom:24px;">На жаль, за обраними фільтрами немає крафтової продукції.</p>
+        <button class="btn-outline" onclick="document.getElementById('filter-category').value='Всі'; document.getElementById('filter-producer').value='Всі'; applyComplexFilter();">Скинути фільтри</button>
+      </div>`;
+    return;
+  }
+
+  products.forEach(prod => {
+    const tagHtml = prod.tags && prod.tags.length > 0 
+      ? `<div style="position:absolute; top:16px; left:16px; z-index:2;"><span class="tag-pill" style="background:var(--noir);">${prod.tags[0]}</span></div>` 
+      : '';
+    
+    const cardHtml = `
+      <div class="prod-card">
+        <div class="prod-img-wrap">
+          ${tagHtml}
+          <div class="prod-category">${prod.category}</div>
+          <img src="${prod.image}" alt="${prod.name}" class="prod-img" loading="lazy">
+        </div>
+        <div class="prod-producer">${prod.producer}</div>
+        <div class="prod-title">${prod.name}</div>
+        <div class="prod-desc">${prod.description}</div>
+        <div class="prod-footer">
+          <div>
+            <div class="prod-weight">Вага/Об'єм: ${prod.weight}</div>
+            <div class="prod-price-val">${prod.price} <span>грн</span></div>
+          </div>
+          <button class="btn-primary" style="padding: 10px 24px;" onclick="addToCart('${prod.id}')">В кошик</button>
+        </div>
+      </div>
+    `;
+    container.insertAdjacentHTML('beforeend', cardHtml);
+  });
+
+  
+}
+
+// --- ЛОГІКА ДИНАМІЧНОГО КОШИКА ---
+
+function addToCart(productId) {
+    const prod = allProducts.find(p => p.id === productId);
+    if (!prod) return;
+    
+    const existingItem = cart.find(item => item.product.id === productId);
+    if (existingItem) {
+        existingItem.quantity += 1;
+    } else {
+        cart.push({ product: prod, quantity: 1 });
+    }
+    
+    updateCartUI(); 
+    showToast(`🛒 "${prod.name}" додано до кошика!`);
+}
+
+function showToast(message) {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerText = message;
+    container.appendChild(toast);
+    
+    setTimeout(() => toast.classList.add('show'), 10);
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 2500);
+}
+
+function changeQuantity(productId, delta) {
+    const itemIndex = cart.findIndex(i => i.product.id === productId);
+    if (itemIndex === -1) return;
+    
+    cart[itemIndex].quantity += delta;
+    
+    if (cart[itemIndex].quantity <= 0) {
+        cart.splice(itemIndex, 1);
+    }
+    
+    updateCartUI();
+    openCartModal(); 
+    if(cart.length === 0) closeOrderModal();
+}
+
+function updateCartUI() {
+    // ЗБЕРІГАЄМО В ПАМ'ЯТЬ БРАУЗЕРА
+    localStorage.setItem('gastro_cart', JSON.stringify(cart));
+
+    const btn = document.getElementById('cart-float-btn');
+    if (cart.length > 0) {
+        btn.style.display = 'block'; 
+        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+        document.getElementById('cart-count').innerText = totalItems;
+        const totalPrice = cart.reduce((sum, item) => sum + (Number(item.product.price) * item.quantity), 0);
+        document.getElementById('cart-total').innerText = totalPrice;
+    } else {
+        btn.style.display = 'none'; 
+    }
+}
+
+function openCartModal() {
+    if(cart.length === 0) return;
+    document.body.classList.add('modal-open');
+    
+    const list = document.getElementById('cart-items-list');
+    list.innerHTML = '';
+    let total = 0;
+    
+    cart.forEach((item) => {
+        const itemTotal = Number(item.product.price) * item.quantity;
+        total += itemTotal;
+        list.innerHTML += `
+          <div class="cart-item">
+            <div style="flex-grow:1; padding-right: 12px;">
+              <div class="cart-item-title">${item.product.name}</div>
+              <div style="font-size:10px; color:var(--stone);">${item.product.weight}</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px;">
+              <div class="cart-qty-ctrl">
+                <button type="button" class="qty-btn" onclick="changeQuantity('${item.product.id}', -1)">−</button>
+                <div class="qty-num">${item.quantity}</div>
+                <button type="button" class="qty-btn" onclick="changeQuantity('${item.product.id}', 1)">+</button>
+              </div>
+              <div class="cart-item-price" style="min-width: 85px; text-align: right; white-space: nowrap;">${itemTotal} грн</div>
+              <button type="button" class="cart-item-remove" onclick="changeQuantity('${item.product.id}', -999)">×</button>
+            </div>
+          </div>
+        `;
+    });
+    
+    document.getElementById('cart-modal-total').innerText = total;
+    document.getElementById('order-modal').classList.add('active');
+}
+
+function closeOrderModal() {
+    document.body.classList.remove('modal-open');
+    document.getElementById('order-modal').classList.remove('active');
+    document.getElementById('order-feedback').style.display = 'none';
+}
+
+async function submitOrder(event) {
+    event.preventDefault();
+    if (cart.length === 0) return;
+
+    const btn = document.getElementById('order-submit-btn');
+    const feedback = document.getElementById('order-feedback');
+    const total = cart.reduce((sum, item) => sum + (Number(item.product.price) * item.quantity), 0);
+    const itemsList = cart.map(item => `${item.product.name} (x${item.quantity})`).join(', ');
+
+    const orderData = { 
+      product: itemsList, 
+      price: total, 
+      name: document.getElementById('order-name').value,
+      phone: document.getElementById('order-phone').value, 
+      status: "Нове" 
+    };
+
+    btn.innerText = 'Обробка...';
+    btn.disabled = true;
+
+    try {
+        const res = await fetch('http://localhost:3000/api/orders', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(orderData)
+        });
+        if (res.ok) {
+            feedback.style.display = 'block'; feedback.style.color = 'var(--gold)';
+            feedback.innerText = '✅ Замовлення успішно прийнято!';
+            cart = []; 
+            updateCartUI();
+            setTimeout(() => {
+                closeOrderModal();
+                document.getElementById('order-form').reset();
+                btn.innerText = 'Підтвердити замовлення';
+                btn.disabled = false;
+            }, 2000);
+        } else throw new Error();
+    } catch (e) { 
+        feedback.style.display = 'block'; feedback.style.color = '#ff6b6b';
+        feedback.innerText = '❌ Помилка з\'єднання з сервером.';
+        btn.innerText = 'Підтвердити замовлення'; btn.disabled = false;
+    }
+}
+
+// Оновлена функція для Адмінки (Деталізовані замовлення у стилі CRM)
+async function loadAdminOrders() {
+  const container = document.getElementById('admin-orders-list');
+  container.innerHTML = '<p style="color:var(--stone);">Завантаження замовлень...</p>';
+  try {
+    const res = await fetch('http://localhost:3000/api/orders');
+    const orders = await res.json();
+    if (!orders.length) return container.innerHTML = '<p>Замовлень поки немає.</p>';
+    
+    container.innerHTML = '';
+    
+    // Робимо reverse(), щоб нові замовлення були зверху
+    orders.reverse().forEach(o => {
+      // Визначаємо колір залежно від статусу
+      let statusColor = '#4cd137'; // зелений для Нового
+      if (o.status === 'Обробляється') statusColor = '#fbc531'; // жовтий
+      if (o.status === 'Виконано') statusColor = '#00a8ff'; // синій
+      if (o.status === 'Скасовано') statusColor = '#7f8c8d'; // сірий
+
+      // Перетворюємо довгий рядок товарів на красивий список
+      let productsListHtml = '';
+      if (o.product) {
+        const items = o.product.split(', ');
+        productsListHtml = '<ul style="list-style:none; padding:0; margin: 12px 0;">';
+        items.forEach(item => {
+          // Виділяємо кількість (x1), (x2) золотим кольором
+          const formattedItem = item.replace(/\((x\d+)\)/g, '<strong style="color:var(--gold);">$1</strong>');
+          productsListHtml += `<li style="padding: 8px 0; border-bottom: 0.5px dashed rgba(138,130,120,0.2); font-size: 14px; color: var(--ivory);">${formattedItem}</li>`;
+        });
+        productsListHtml += '</ul>';
+      }
+
+      container.innerHTML += `
+        <div class="msg-card" style="position:relative; padding: 28px; border: 0.5px solid rgba(201,168,76,0.3);">
+          
+          <div class="msg-header" style="border-bottom: 0.5px solid rgba(201,168,76,0.2); padding-bottom: 16px; margin-bottom: 20px;">
+            <div style="display:flex; align-items:center; gap: 16px;">
+              <span style="color: ${statusColor}; font-weight:bold; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase;">● ${o.status}</span>
+              <span style="color: var(--stone); font-size: 11px; font-family: monospace;">№ ${o.id}</span>
+            </div>
+            <span>${o.date ? new Date(o.date).toLocaleString('uk-UA') : ''}</span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr; gap: 24px;">
+            <div style="display: flex; flex-wrap: wrap; gap: 32px;">
+              
+              <div style="flex-grow: 1; min-width: 250px;">
+                <div style="font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--stone); margin-bottom: 8px;">Перелік товарів</div>
+                ${productsListHtml}
+                <div style="font-family: 'Cormorant Garamond', serif; font-size: 28px; color:var(--gold); margin-top:16px; line-height: 1;">
+                  Разом: ${o.price} грн
+                </div>
+              </div>
+
+              <div style="min-width: 250px; background: rgba(255,255,255,0.02); padding: 20px; border: 0.5px solid rgba(138,130,120,0.15); align-self: flex-start;">
+                <div style="font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--stone); margin-bottom: 16px;">Дані клієнта</div>
+                <div style="margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                  <span style="font-size: 16px;">👤</span>
+                  <strong style="color:var(--ivory); font-size: 15px;">${o.name || 'Не вказано'}</strong>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="font-size: 16px;">📞</span>
+                  <a href="tel:${o.phone}" style="color:var(--gold); text-decoration: none; font-size: 15px; font-weight: 500;">${o.phone}</a>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <div style="margin-top:28px; padding-top:20px; border-top:0.5px solid rgba(138,130,120,0.15); display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 16px;">
+            <div>
+              <label style="font-size:9px; text-transform:uppercase; color:var(--stone); margin-right:12px; letter-spacing: 0.1em;">Змінити статус:</label>
+              <select class="form-select" style="width:auto; display:inline-block; padding:10px 16px; font-size:13px; background: rgba(10,10,10,0.8);" onchange="updateOrderStatus('${o.id}', this.value)">
+                <option value="Нове" ${o.status === 'Нове' ? 'selected' : ''}>Нове</option>
+                <option value="Обробляється" ${o.status === 'Обробляється' ? 'selected' : ''}>Обробляється</option>
+                <option value="Виконано" ${o.status === 'Виконано' ? 'selected' : ''}>Виконано</option>
+                <option value="Скасовано" ${o.status === 'Скасовано' ? 'selected' : ''}>Скасовано</option>
+              </select>
+            </div>
+            <button class="btn-outline" style="padding:10px 20px; font-size:10px; color:#ff6b6b; border-color:rgba(255,107,107,0.2);" onclick="deleteOrder('${o.id}')">🗑️ Видалити замовлення</button>
+          </div>
+
+        </div>`;
+    });
+  } catch (e) { container.innerHTML = '<p style="color:#ff6b6b;">Помилка завантаження замовлень.</p>'; }
+}
+
+// Зміна статусу замовлення на сервері
+async function updateOrderStatus(id, newStatus) {
+  try {
+    const res = await fetch(`http://localhost:3000/api/orders/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus })
+    });
+    if (res.ok) {
+      showToast(`🔄 Статус змінено на "${newStatus}"`);
+      loadAdminOrders(); // Перезавантажуємо список для оновлення кольорів
+    }
+  } catch (e) { showToast('❌ Помилка оновлення статусу'); }
+}
+
+// Видалення замовлення
+async function deleteOrder(id) {
+  if (!confirm('Видалити це замовлення з історії?')) return;
+  try {
+    const res = await fetch(`http://localhost:3000/api/orders/${id}`, { method: 'DELETE' });
+    if (res.ok) {
+      showToast('🗑️ Замовлення видалено');
+      loadAdminOrders();
+    }
+  } catch (e) { showToast('❌ Помилка при видаленні замовлення'); }
+}
+
+// --- ЛОГІКА КОНТАКТНОЇ ФОРМИ ---
+async function submitContactForm(event) {
+  event.preventDefault(); 
+  
+  const btn = document.getElementById('form-submit-btn');
+  const feedback = document.getElementById('form-feedback');
+  
+  const formData = {
+    name: document.getElementById('form-name').value,
+    email: document.getElementById('form-email').value,
+    phone: document.getElementById('form-phone').value,
+    type: document.getElementById('form-type').value,
+    business: document.getElementById('form-business').value,
+    message: document.getElementById('form-msg').value
+  };
+
+  btn.innerText = 'Надсилання...';
+  btn.disabled = true;
+  btn.style.opacity = '0.7';
+
+  try {
+    const response = await fetch('http://localhost:3000/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
+
+    if (response.ok) {
+      feedback.style.display = 'block';
+      feedback.style.color = 'var(--gold)';
+      feedback.innerText = 'Дякуємо! Ваше повідомлення успішно надіслано.';
+      document.getElementById('gastro-contact-form').reset();
+    } else {
+      throw new Error('Помилка сервера');
+    }
+  } catch (error) {
+    console.error(error);
+    feedback.style.display = 'block';
+    feedback.style.color = '#ff6b6b'; 
+    feedback.innerText = 'Виникла помилка при відправці. Перевірте з\'єднання з сервером.';
+  } finally {
+    btn.innerText = 'Надіслати повідомлення';
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    setTimeout(() => { feedback.style.display = 'none'; }, 5000);
+  }
+}
+
+// --- ЛОГІКА АДМІН-ПАНЕЛІ (АВТОРИЗАЦІЯ ТА ВКЛАДКИ) ---
+function loginAdmin(e) {
+    e.preventDefault();
+    if(document.getElementById('admin-password').value === 'admin2026') {
+        document.getElementById('admin-login-screen').style.display = 'none';
+        document.getElementById('admin-dashboard-screen').style.display = 'grid'; // grid бо там 2 колонки
+        loadAdminStats();
+    } else {
+        document.getElementById('login-error').style.display = 'block';
+    }
+}
+
+function logoutAdmin() {
+    document.getElementById('admin-password').value = '';
+    document.getElementById('admin-login-screen').style.display = 'block';
+    document.getElementById('admin-dashboard-screen').style.display = 'none';
+}
+
+function switchAdminTab(tabName) {
+  document.querySelectorAll('.admin-tab-pane').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.admin-tab-btn').forEach(el => el.classList.remove('active'));
+  
+  document.getElementById('admin-tab-' + tabName).classList.add('active');
+  document.getElementById('btn-tab-' + tabName).classList.add('active');
+
+  if (tabName === 'messages') loadAdminMessages();
+  if (tabName === 'orders') loadAdminOrders();
+  if (tabName === 'stats') loadAdminStats();
+  if (tabName === 'products') {
+    loadAdminProducts();
+    resetProductForm(); // Скидаємо форму до стану "Додати", якщо ми були в режимі редагування
+  }
+}
+
+async function loadAdminStats() {
+    document.getElementById('stat-locs').innerText = allLocations.length;
+    document.getElementById('stat-prods').innerText = allProducts.length;
+    
+    try {
+        const oRes = await fetch('http://localhost:3000/api/orders');
+        document.getElementById('stat-orders').innerText = (await oRes.json()).length;
+        
+        const mRes = await fetch('http://localhost:3000/api/messages');
+        document.getElementById('stat-msgs').innerText = (await mRes.json()).length;
+    } catch(e) { console.log(e); }
+}
+
+async function loadAdminMessages() {
+  const container = document.getElementById('admin-messages-list');
+  container.innerHTML = '<p style="color:var(--stone);">Завантаження...</p>';
+  try {
+    const res = await fetch('http://localhost:3000/api/messages');
+    const msgs = await res.json();
+    if (!msgs.length) return container.innerHTML = '<p>Повідомлень немає.</p>';
+    
+    container.innerHTML = '';
+    msgs.reverse().forEach(m => {
+      container.innerHTML += `
+        <div class="msg-card">
+          <div class="msg-header"><span>📅 ${new Date(m.date).toLocaleString('uk-UA')} | 🏷️ ${m.type}</span><span>👤 ${m.name} (${m.phone})</span></div>
+          <div class="msg-title">${m.business || 'Без назви'}</div>
+          <p style="color:var(--stone-light);">${m.message}</p>
+          <div style="font-size: 11px; color:var(--stone); margin-top:8px;">📧 Email: ${m.email}</div>
+        </div>`;
+    });
+  } catch (e) { container.innerHTML = '<p style="color:#ff6b6b;">Помилка.</p>'; }
+}
+
+// --- ЛОГІКА ДОДАВАННЯ ЛОКАЦІЇ ТА ТОВАРІВ ---
+// Оновлена функція: тепер вміє і додавати новий, і зберігати відредагований товар
+async function submitNewProduct(event) {
+  event.preventDefault();
+  const btn = document.getElementById('admin-submit-btn');
+  const feedback = document.getElementById('admin-feedback');
+  const rawTag = document.getElementById('admin-tag').value.trim();
+  const imageValue = document.getElementById('admin-image').value;
+
+  // РОЗУМНА ПЕРЕВІРКА ФОТО: Вимагаємо фото тільки для НОВИХ товарів
+  if (!editingProductId && (imageValue === 'images/' || imageValue === '')) {
+     feedback.style.display = 'block';
+     feedback.style.color = '#ff6b6b';
+     feedback.innerText = '❌ Будь ласка, виберіть файл фотографії!';
+     setTimeout(() => { feedback.style.display = 'none'; }, 4000);
+     return; // Зупиняємо відправку
+  }
+
+  const productData = {
+    name: document.getElementById('admin-name').value,
+    producer: document.getElementById('admin-producer').value,
+    category: document.getElementById('admin-cat').value,
+    price: Number(document.getElementById('admin-price').value),
+    weight: document.getElementById('admin-weight').value,
+    image: imageValue,
+    tags: rawTag ? [rawTag] : [],
+    description: document.getElementById('admin-desc').value
+  };
+
+  btn.innerText = editingProductId ? 'Збереження...' : 'Публікація...';
+  btn.disabled = true;
+
+  // Якщо editingProductId не порожній — відправляємо PUT, інакше POST (новий товар)
+  const url = editingProductId 
+    ? `http://localhost:3000/api/products/${editingProductId}` 
+    : 'http://localhost:3000/api/products';
+  const method = editingProductId ? 'PUT' : 'POST';
+
+  try {
+    const response = await fetch(url, {
+      method: method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(productData)
+    });
+    if (response.ok) {
+      feedback.style.display = 'block'; 
+      feedback.style.color = 'var(--gold)'; 
+      feedback.innerText = editingProductId ? '✨ Зміни успішно збережено!' : '✅ Товар успішно додано до каталогу!';
+      
+      resetProductForm();
+      loadAdminProducts(); 
+      loadProducts(); // Оновлюємо вітрину сайту
+    } else throw new Error('Помилка сервера');
+  } catch (error) {
+    feedback.style.display = 'block'; feedback.style.color = '#ff6b6b'; feedback.innerText = 'Помилка при з\'єднанні з сервером.';
+  } finally {
+    btn.disabled = false;
+    setTimeout(() => { feedback.style.display = 'none'; }, 4000);
+  }
+}
+
+// Функція завантаження товарів в адмінці
+async function loadAdminProducts() {
+  const container = document.getElementById('admin-products-list');
+  if (!container) return;
+  container.innerHTML = '<p style="color:var(--stone);">Завантаження списку товарів...</p>';
+  try {
+    const res = await fetch('http://localhost:3000/api/products');
+    allProducts = await res.json();
+    if (!allProducts.length) return container.innerHTML = '<p>Товарів у базі немає.</p>';
+    
+    container.innerHTML = '';
+    allProducts.forEach(p => {
+      container.innerHTML += `
+        <div class="msg-card" style="display:flex; justify-content:space-between; align-items:center; gap:16px;">
+          <div>
+            <div style="font-family:'Cormorant Garamond', serif; font-size:19px; color:var(--gold);">${p.name}</div>
+            <div style="font-size:12px; color:var(--stone-light); margin-top:4px;">
+              Категорія: ${p.category} | Ціна: ${p.price} грн | Вага: ${p.weight}
+            </div>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn-outline" style="padding:6px 12px; font-size:10px; border-color:rgba(201,168,76,0.3);" onclick="editProduct('${p.id}')">✏️ Редагувати</button>
+            <button class="btn-outline" style="padding:6px 12px; font-size:10px; color:#ff6b6b; border-color:rgba(255,107,107,0.2);" onclick="deleteProduct('${p.id}')">🗑️ Видалити</button>
+          </div>
+        </div>`;
+    });
+  } catch (e) { container.innerHTML = '<p style="color:#ff6b6b;">Помилка завантаження.</p>'; }
+}
+
+// Заповнення форми даними обраного товару для редагування
+function editProduct(id) {
+  const prod = allProducts.find(p => p.id === id);
+  if (!prod) return;
+  
+  editingProductId = id;
+  document.getElementById('admin-name').value = prod.name;
+  document.getElementById('admin-producer').value = prod.producer;
+  document.getElementById('admin-cat').value = prod.category;
+  document.getElementById('admin-price').value = prod.price;
+  document.getElementById('admin-weight').value = prod.weight;
+  document.getElementById('admin-image').value = prod.image;
+  document.getElementById('admin-tag').value = prod.tags && prod.tags[0] ? prod.tags[0] : '';
+  document.getElementById('admin-desc').value = prod.description;
+  
+  document.getElementById('admin-product-form-title').innerText = '✏️ Редагувати товар';
+  document.getElementById('admin-submit-btn').innerText = 'Зберегти зміни';
+  document.getElementById('admin-product-form').scrollIntoView({ behavior: 'smooth' });
+}
+
+// Скидання форми до початкового стану
+function resetProductForm() {
+  editingProductId = null;
+  document.getElementById('admin-product-form').reset();
+  document.getElementById('admin-image').value = 'images/';
+  document.getElementById('admin-file-chooser').value = '';
+  document.getElementById('admin-product-form-title').innerText = 'Додати новий продукт';
+  document.getElementById('admin-submit-btn').innerText = 'Опублікувати товар';
+}
+
+// Функція видалення товару
+async function deleteProduct(id) {
+  if (!confirm('Ви впевнені, що хочете видалити цей товар з бази даних?')) return;
+  try {
+    const res = await fetch(`http://localhost:3000/api/products/${id}`, { method: 'DELETE' });
+    if (res.ok) {
+      showToast('🗑️ Товар успішно видалено');
+      loadAdminProducts();
+      loadProducts();
+    }
+  } catch (e) { showToast('❌ Помилка видалення товару'); }
+}
+
+// --- ФУНКЦІЯ ШТУЧНОГО ІНТЕЛЕКТУ ДЛЯ ГЕНЕРАЦІЇ ОПИСУ ---
+async function generateAIDescription() {
+  const name = document.getElementById('admin-name').value.trim();
+  const cat = document.getElementById('admin-cat').value;
+  const descField = document.getElementById('admin-desc');
+
+  if (!name) {
+    showToast('❌ Спочатку введіть назву товару!');
+    document.getElementById('admin-name').focus();
+    return;
+  }
+
+  // Анімація очікування
+  descField.value = 'ШІ аналізує продукт та генерує опис... ✨ Зачекайте кілька секунд...';
+  descField.disabled = true;
+
+  try {
+    const res = await fetch('http://localhost:3000/api/generate-desc', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name, category: cat })
+    });
+    
+    const data = await res.json();
+    
+    if (res.ok && data.description) {
+      descField.value = data.description.trim();
+      showToast('✨ AI успішно створив опис!');
+    } else {
+      descField.value = '';
+      showToast('❌ Помилка: ' + (data.error || 'Збій генерації'));
+    }
+  } catch (e) {
+    descField.value = '';
+    showToast('❌ Помилка з\'єднання з AI сервером');
+  } finally {
+    descField.disabled = false;
+  }
+}
+
+async function submitNewLocation(event) {
+  event.preventDefault();
+  const btn = document.getElementById('loc-submit-btn');
+  const feedback = document.getElementById('loc-feedback');
+  const rawTag = document.getElementById('loc-tag').value.trim();
+  
+  const locData = {
+    name: document.getElementById('loc-name').value,
+    category: document.getElementById('loc-cat').value,
+    city: document.getElementById('loc-city').value,
+    ai_rating: Number(document.getElementById('loc-rating').value),
+    price_range: document.getElementById('loc-price').value,
+    tags: rawTag ? [rawTag] : [],
+    description: document.getElementById('loc-desc').value,
+    coordinates: {
+      lat: Number(document.getElementById('loc-lat').value),
+      lng: Number(document.getElementById('loc-lng').value)
+    }
+  };
+
+  btn.innerText = 'Збереження...';
+  try {
+    const response = await fetch('http://localhost:3000/api/locations', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(locData)
+    });
+    if (response.ok) {
+      feedback.style.display = 'block'; feedback.style.color = 'var(--gold)'; feedback.innerText = 'Локацію додано на карту!';
+      document.getElementById('admin-location-form').reset();
+      loadLocations();
+    } else throw new Error('Помилка сервера');
+  } catch (error) {
+    feedback.style.display = 'block'; feedback.style.color = '#ff6b6b'; feedback.innerText = 'Помилка збереження.';
+  } finally {
+    btn.innerText = 'Опублікувати локацію';
+    setTimeout(() => feedback.style.display = 'none', 5000);
+  }
+}
+// --- СЕКРЕТНИЙ ВХІД В АДМІНКУ ЗА КОМБІНАЦІЄЮ КЛАВІШ (Ctrl + Shift + Q) ---
+window.addEventListener('keydown', (event) => {
+  if (event.ctrlKey && event.shiftKey && event.code === 'KeyQ') {
+    event.preventDefault(); 
+    showPage('admin');      
+    showToast('🔑 Активовано прихований вхід для адміністратора');
+  }
+});
+// --- ЛОГІКА РОБОТИ AI ЧАТ-ГІДА ---
+function toggleAIChat() {
+    const chatWindow = document.getElementById('ai-chat-window');
+    chatWindow.classList.toggle('active');
+    if (chatWindow.classList.contains('active')) {
+        document.getElementById('ai-chat-input').focus();
+    }
+}
+
+async function sendAIChatMessage() {
+    const inputEl = document.getElementById('ai-chat-input');
+    const messageText = inputEl.value.trim();
+    if (!messageText) return;
+
+    // Очищаємо інпут і виводимо повідомлення користувача в чат
+    inputEl.value = '';
+    appendChatMessage(messageText, 'user');
+
+    // Створюємо анімацію очікування (placeholder)
+    const messagesContainer = document.getElementById('ai-chat-messages');
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'chat-msg ai';
+    typingDiv.id = 'ai-chat-typing';
+    typingDiv.innerText = 'Гід підбирає найкращі локації... 💭';
+    messagesContainer.appendChild(typingDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+    try {
+        const res = await fetch('http://localhost:3000/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: messageText })
+        });
+
+        const data = await res.json();
+        
+        // Видаляємо індикатор очікування
+        const placeholder = document.getElementById('ai-chat-typing');
+        if (placeholder) placeholder.remove();
+
+        if (res.ok && data.reply) {
+            appendChatMessage(data.reply, 'ai');
+        } else {
+            appendChatMessage('❌ Вибачте, сталася помилка з боку AI сервісу. Спробуйте пізніше.', 'ai');
+        }
+    } catch (error) {
+        const placeholder = document.getElementById('ai-chat-typing');
+        if (placeholder) placeholder.remove();
+        appendChatMessage('❌ Не вдалося зв’язатися з сервером GastroIntel.', 'ai');
+        console.error("Помилка відправки повідомлення:", error);
+    }
+}
+
+function appendChatMessage(text, sender) {
+    const messagesContainer = document.getElementById('ai-chat-messages');
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `chat-msg ${sender}`;
+    msgDiv.innerText = text;
+    messagesContainer.appendChild(msgDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+// --- ФУНКЦІЯ ШТУЧНОГО ІНТЕЛЕКТУ ДЛЯ АНАЛІЗУ ВІДГУКІВ ---
+async function calculateAIRating() {
+    const reviewsText = document.getElementById('loc-reviews').value.trim();
+    const ratingInput = document.getElementById('loc-rating');
+
+    if (!reviewsText) {
+        showToast('❌ Спочатку вставте відгуки для аналізу!');
+        document.getElementById('loc-reviews').focus();
+        return;
+    }
+
+    showToast('🧠 ШІ аналізує тональність відгуків...');
+    ratingInput.value = '...';
+
+    try {
+        const res = await fetch('http://localhost:3000/api/analyze-reviews', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reviews: reviewsText })
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok && data.rating) {
+            // Перевіряємо, чи ШІ дійсно повернув число
+            const ratingNumber = parseFloat(data.rating.replace(',', '.'));
+            if(!isNaN(ratingNumber)) {
+                ratingInput.value = ratingNumber;
+                showToast(`✨ AI успішно виставив оцінку: ${ratingNumber}`);
+            } else {
+                ratingInput.value = '';
+                showToast('❌ ШІ повернув незрозумілий формат');
+            }
+        } else {
+            ratingInput.value = '';
+            showToast('❌ Помилка розрахунку');
+        }
+    } catch (e) {
+        ratingInput.value = '';
+        showToast('❌ Помилка з\'єднання з сервером');
+        console.error(e);
+    }
+}
+</script>
+</body>
+</html>
