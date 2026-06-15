@@ -189,19 +189,8 @@ app.get('/api/messages', (req, res) => {
         res.json(data ? JSON.parse(data) : []);
     });
 });
-
-app.post('/api/contact',async (req, res) => { 
-    fs.readFile(messagesPath, 'utf8', (err, data) => {
-        if (err) return res.status(500).json({ error: "Помилка сервера" });
-        const messages = data ? JSON.parse(data) : [];
-        const newMessage = { id: Date.now(), date: new Date().toISOString(), ...req.body };
-        messages.push(newMessage);
-        fs.writeFile(messagesPath, JSON.stringify(messages, null, 2), err => {
-            if (err) return res.status(500).json({ error: "Помилка збереження" });
-            res.status(200).json({ success: true });
-        });
-    });
-    try {
+app.post('/api/contact', async (req, res) => { 
+  try {
     const data = await fs.readFile(messagesFile, 'utf8');
     const messages = JSON.parse(data);
     const newMsg = { id: Date.now().toString(), ...req.body, date: new Date().toISOString() };
