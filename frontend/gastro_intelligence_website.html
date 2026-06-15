@@ -1866,6 +1866,9 @@
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
              <h2 style="font-family:'Cormorant Garamond', serif; font-size:28px; color:var(--gold);">Вхідні повідомлення</h2>
              <button class="btn-outline" style="padding:6px 16px; font-size:9px;" onclick="loadAdminMessages()">🔄 Оновити</button>
+             <button class="btn-outline" style="padding: 5px 15px; font-size: 10px; color: #ff6b6b; border-color: rgba(255,107,107,0.2); float: right; margin-top: 10px;" onclick="deleteMessage('${msg.id}')">
+                🗑️ Видалити
+            </button>
           </div>
           <div id="admin-messages-list"></div>
         </div>
@@ -2577,6 +2580,22 @@ async function deleteOrder(id) {
       loadAdminOrders();
     }
   } catch (e) { showToast('❌ Помилка при видаленні замовлення'); }
+}
+async function deleteMessage(id) {
+    if (!confirm('Ви впевнені, що хочете видалити це повідомлення з історії?')) return;
+
+    try {
+        const res = await fetch(`/api/messages/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+            showToast('✅ Повідомлення видалено');
+            loadAdminMessages(); // Перезавантажуємо список повідомлень, щоб воно зникло з екрана
+        } else {
+            showToast('❌ Помилка при видаленні');
+        }
+    } catch (error) {
+        console.error('Помилка:', error);
+        showToast('❌ Помилка з\'єднання з сервером');
+    }
 }
 
 // --- ЛОГІКА КОНТАКТНОЇ ФОРМИ ---
