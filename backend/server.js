@@ -189,22 +189,31 @@ app.get('/api/messages', (req, res) => {
         res.json(data ? JSON.parse(data) : []);
     });
 });
-app.post('/api/contact', async (req, res) => { 
-  try {
-    const data = await fs.readFile(messagesFile, 'utf8');
-    const messages = JSON.parse(data);
-    const newMsg = { id: Date.now().toString(), ...req.body, date: new Date().toISOString() };
-    messages.push(newMsg);
-    await fs.writeFile(messagesFile, JSON.stringify(messages, null, 2));
+app.post('/api/contact', (req, res) => {
+    // Використовуємо твій старий перевірений messagesPath
+    fs.readFile(messagesPath, 'utf8', async (err, data) => {
+        if (err) return res.status(500).json({ error: "Помилка читання бази" });
 
-    // 👇 ДОДАЄМО ВІДПРАВКУ В ТЕЛЕГРАМ 👇
-    const telegramMsg = `✉️ <b>НОВЕ ПОВІДОМЛЕННЯ (${newMsg.type})</b>\n\n👤 <b>Від:</b> ${newMsg.name} (${newMsg.phone})\n🏢 <b>Локація:</b> ${newMsg.business || 'Не вказано'}\n💬 <b>Текст:</b> <i>${newMsg.message}</i>`;
-    await sendTelegramNotification(telegramMsg);
+        const messages = data ? JSON.parse(data) : [];
+        const newMsg = { id: Date.now().toString(), date: new Date().toISOString(), ...req.body };
+        messages.push(newMsg);
 
-    res.status(201).json(newMsg);
-  } catch (error) {
-    res.status(500).json({ error: 'Помилка збереження повідомлення' });
-  }
+        // Зберігаємо файл
+        fs.writeFile(messagesPath, JSON.stringify(messages, null, 2), async (err) => {
+            if (err) return res.status(500).json({ error: "Помилка збереження" });
+
+            // Відправляємо в Телеграм тільки якщо файл успішно зберігся
+            try {
+                const telegramMsg = `✉️ <b>НОВЕ ПОВІДОМЛЕННЯ (${newMsg.type})</b>\n\n👤 <b>Від:</b> ${newMsg.name} (${newMsg.phone})\n🏢 <b>Локація:</b> ${newMsg.business || 'Не вказано'}\n💬 <b>Текст:</b> <i>${newMsg.message}</i>`;
+                await sendTelegramNotification(telegramMsg);
+            } catch (tgError) {
+                console.log("Помилка відправки в Телеграм:", tgError);
+            }
+
+            // Відповідаємо браузеру, що все супер
+            res.status(200).json({ success: true });
+        });
+    });
 });
 
 app.delete('/api/messages/:id', (req, res) => {
