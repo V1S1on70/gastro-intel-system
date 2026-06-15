@@ -1995,13 +1995,13 @@ document.addEventListener('DOMContentLoaded', () => {
 async function loadPublicStats() {
   try {
     // 1. Отримуємо локації
-    const locRes = await fetch('http://localhost:3000/api/locations');
+    const locRes = await fetch('/api/locations');
     const locations = await locRes.json();
     const locElement = document.getElementById('public-stat-locs');
     if (locElement) locElement.innerText = locations.length;
 
     // 2. Отримуємо продукти
-    const prodRes = await fetch('http://localhost:3000/api/products');
+    const prodRes = await fetch('/api/locations');
     const products = await prodRes.json();
     const prodElement = document.getElementById('public-stat-prods');
     if (prodElement) prodElement.innerText = products.length;
@@ -2019,7 +2019,7 @@ async function loadPublicStats() {
 // --- ЛОГІКА ЛОКАЦІЙ ---
 async function loadLocations() {
   try {
-    const response = await fetch('http://localhost:3000/api/locations');
+    const response = await fetch('/api/locations');
     allLocations = await response.json();
     
     renderLocationsList(allLocations);
