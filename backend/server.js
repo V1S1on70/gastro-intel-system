@@ -217,25 +217,26 @@ app.post('/api/contact', (req, res) => {
 });
 
 // Видалення повідомлення
-app.delete('/api/messages/:id', async (req, res) => {
-    try {
-        const messageId = req.params.id;
+app.delete('/api/messages/:id', (req, res) => {
+    const messageId = req.params.id;
+
+    // Читаємо базу старим надійним методом
+    fs.readFile(messagesPath, 'utf8', (err, data) => {
+        if (err) return res.status(500).json({ error: "Помилка читання бази" });
+
+        let messages = data ? JSON.parse(data) : [];
         
-        // Читаємо базу повідомлень
-        const data = await fs.readFile(messagesFile, 'utf8'); // або messagesPath, залежно від того, як названа змінна у тебе вище
-        let messages = JSON.parse(data);
-        
-        // Фільтруємо масив, залишаючи всі повідомлення, ОКРІМ того, яке треба видалити
+        // Видаляємо потрібне повідомлення
         messages = messages.filter(msg => msg.id.toString() !== messageId.toString());
-        
-        // Зберігаємо оновлений масив назад у файл
-        await fs.writeFile(messagesFile, JSON.stringify(messages, null, 2));
-        
-        res.status(200).json({ success: true });
-    } catch (error) {
-        console.error("Помилка видалення повідомлення:", error);
-        res.status(500).json({ error: 'Помилка сервера при видаленні' });
-    }
+
+        // Зберігаємо файл
+        fs.writeFile(messagesPath, JSON.stringify(messages, null, 2), (err) => {
+            if (err) return res.status(500).json({ error: "Помилка збереження" });
+            
+            // Якщо все ок — відповідаємо успіхом
+            res.status(200).json({ success: true });
+        });
+    });
 });
 
 app.delete('/api/messages/:id', (req, res) => {
