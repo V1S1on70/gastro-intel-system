@@ -2220,7 +2220,7 @@ function selectMapLocation(loc, x, y) {
 // --- ЛОГІКА ТОВАРІВ ---
 async function loadProducts() {
   try {
-    const response = await fetch('http://localhost:3000/api/products');
+    const response = await fetch('/api/locations');
     allProducts = await response.json();
     
     // Автоматично збираємо всіх унікальних виробників для фільтра
@@ -2443,7 +2443,7 @@ async function submitOrder(event) {
     btn.disabled = true;
 
     try {
-        const res = await fetch('http://localhost:3000/api/orders', {
+        const res = await fetch('/api/orders', {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(orderData)
         });
         if (res.ok) {
@@ -2470,7 +2470,7 @@ async function loadAdminOrders() {
   const container = document.getElementById('admin-orders-list');
   container.innerHTML = '<p style="color:var(--stone);">Завантаження замовлень...</p>';
   try {
-    const res = await fetch('http://localhost:3000/api/orders');
+    const res = await fetch('/api/orders');
     const orders = await res.json();
     if (!orders.length) return container.innerHTML = '<p>Замовлень поки немає.</p>';
     
@@ -2555,7 +2555,7 @@ async function loadAdminOrders() {
 // Зміна статусу замовлення на сервері
 async function updateOrderStatus(id, newStatus) {
   try {
-    const res = await fetch(`http://localhost:3000/api/orders/${id}`, {
+    const res = await fetch(`/api/orders/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: newStatus })
@@ -2571,7 +2571,7 @@ async function updateOrderStatus(id, newStatus) {
 async function deleteOrder(id) {
   if (!confirm('Видалити це замовлення з історії?')) return;
   try {
-    const res = await fetch(`http://localhost:3000/api/orders/${id}`, { method: 'DELETE' });
+    const res = await fetch(`/api/orders/${id}`, { method: 'DELETE' });
     if (res.ok) {
       showToast('🗑️ Замовлення видалено');
       loadAdminOrders();
@@ -2600,7 +2600,7 @@ async function submitContactForm(event) {
   btn.style.opacity = '0.7';
 
   try {
-    const response = await fetch('http://localhost:3000/api/contact', {
+    const response = await fetch('/api/contact', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData)
@@ -2666,10 +2666,10 @@ async function loadAdminStats() {
     document.getElementById('stat-prods').innerText = allProducts.length;
     
     try {
-        const oRes = await fetch('http://localhost:3000/api/orders');
+        const oRes = await fetch('/api/orders');
         document.getElementById('stat-orders').innerText = (await oRes.json()).length;
         
-        const mRes = await fetch('http://localhost:3000/api/messages');
+        const mRes = await fetch('/api/messages');
         document.getElementById('stat-msgs').innerText = (await mRes.json()).length;
     } catch(e) { console.log(e); }
 }
@@ -2678,7 +2678,7 @@ async function loadAdminMessages() {
   const container = document.getElementById('admin-messages-list');
   container.innerHTML = '<p style="color:var(--stone);">Завантаження...</p>';
   try {
-    const res = await fetch('http://localhost:3000/api/messages');
+    const res = await fetch('/api/messages');
     const msgs = await res.json();
     if (!msgs.length) return container.innerHTML = '<p>Повідомлень немає.</p>';
     
@@ -2729,8 +2729,8 @@ async function submitNewProduct(event) {
 
   // Якщо editingProductId не порожній — відправляємо PUT, інакше POST (новий товар)
   const url = editingProductId 
-    ? `http://localhost:3000/api/products/${editingProductId}` 
-    : 'http://localhost:3000/api/products';
+    ? `/api/products/${editingProductId}` 
+    : '/api/products';
   const method = editingProductId ? 'PUT' : 'POST';
 
   try {
@@ -2760,7 +2760,7 @@ async function loadAdminProducts() {
   if (!container) return;
   container.innerHTML = '<p style="color:var(--stone);">Завантаження списку товарів...</p>';
   try {
-    const res = await fetch('http://localhost:3000/api/products');
+    const res = await fetch('/api/products');
     allProducts = await res.json();
     if (!allProducts.length) return container.innerHTML = '<p>Товарів у базі немає.</p>';
     
@@ -2817,7 +2817,7 @@ function resetProductForm() {
 async function deleteProduct(id) {
   if (!confirm('Ви впевнені, що хочете видалити цей товар з бази даних?')) return;
   try {
-    const res = await fetch(`http://localhost:3000/api/products/${id}`, { method: 'DELETE' });
+    const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
     if (res.ok) {
       showToast('🗑️ Товар успішно видалено');
       loadAdminProducts();
@@ -2843,7 +2843,7 @@ async function generateAIDescription() {
   descField.disabled = true;
 
   try {
-    const res = await fetch('http://localhost:3000/api/generate-desc', {
+    const res = await fetch('/api/generate-desc', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: name, category: cat })
@@ -2888,7 +2888,7 @@ async function submitNewLocation(event) {
 
   btn.innerText = 'Збереження...';
   try {
-    const response = await fetch('http://localhost:3000/api/locations', {
+    const response = await fetch('/api/locations', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(locData)
     });
     if (response.ok) {
@@ -2939,7 +2939,7 @@ async function sendAIChatMessage() {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
     try {
-        const res = await fetch('http://localhost:3000/api/chat', {
+        const res = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ message: messageText })
@@ -2988,7 +2988,7 @@ async function calculateAIRating() {
     ratingInput.value = '...';
 
     try {
-        const res = await fetch('http://localhost:3000/api/analyze-reviews', {
+        const res = await fetch('/api/analyze-reviews', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ reviews: reviewsText })
