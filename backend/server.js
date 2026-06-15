@@ -5,6 +5,8 @@ const path = require('path');
 require('dotenv').config();
 
 const app = express();
+app.use(cors());
+app.use(express.json()); // Ось цей рядок розпаковує дані кошика!
 const PORT = 3000;
 
 // Вказуємо точний шлях до папки frontend (вона на рівень вище від backend)
