@@ -2001,7 +2001,7 @@ async function loadPublicStats() {
     if (locElement) locElement.innerText = locations.length;
 
     // 2. Отримуємо продукти
-    const prodRes = await fetch('/api/locations');
+    const prodRes = await fetch('/api/products');
     const products = await prodRes.json();
     const prodElement = document.getElementById('public-stat-prods');
     if (prodElement) prodElement.innerText = products.length;
@@ -2220,7 +2220,7 @@ function selectMapLocation(loc, x, y) {
 // --- ЛОГІКА ТОВАРІВ ---
 async function loadProducts() {
   try {
-    const response = await fetch('/api/locations');
+    const response = await fetch('/api/products');
     allProducts = await response.json();
     
     // Автоматично збираємо всіх унікальних виробників для фільтра
