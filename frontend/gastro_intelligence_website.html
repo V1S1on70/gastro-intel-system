@@ -1284,6 +1284,41 @@
     .telegram-btn { bottom: 85px; right: 20px; width: 48px; height: 48px; }
     .telegram-icon { width: 24px; height: 24px; }
   }
+  /* =========================================
+   ФІНАЛЬНИЙ ПАТЧ ДЛЯ МОБІЛЬНОЇ ВЕРСІЇ
+   ========================================= */
+
+/* 1. AI-Гід завжди поверх усього (навіть поверх меню і кошика) */
+.ai-chat-btn { z-index: 999999 !important; }
+.ai-chat-window { z-index: 999999 !important; }
+
+@media (max-width: 768px) {
+  /* 2. Збільшуємо шрифт посилань у мобільному меню */
+  .g-nav-links li a {
+    font-size: 26px !important; 
+    padding: 16px !important;
+  }
+
+  /* 3. Показуємо приховану кнопку "Долучитися" */
+  .mobile-only-btn {
+    display: block !important;
+    width: 100%;
+    text-align: center;
+    margin-top: 30px;
+  }
+
+  /* Робимо кнопку широкою і зручною для натискання пальцем */
+  .mobile-only-btn .btn-primary {
+    width: 85%;
+    padding: 16px;
+    font-size: 14px;
+  }
+  
+  /* 4. Піднімаємо AI-кнопку трохи вище, щоб вона не злипалася з кошиком */
+  .ai-chat-btn {
+    bottom: 95px !important;
+  }
+}
 </style>
 
 <div id="gastro-app">
