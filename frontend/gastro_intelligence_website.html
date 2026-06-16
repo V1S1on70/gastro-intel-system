@@ -1242,7 +1242,7 @@
   /* СТИЛІ ДЛЯ AI ЧАТ-ГІДА */
   .ai-chat-btn { position: fixed; bottom: 40px; left: 40px; background: #1A1A1A; color: var(--gold); border: 0.5px solid var(--gold); border-radius: 50px; padding: 16px 24px; font-family: 'Inter', sans-serif; font-size: 13px; letter-spacing: 0.05em; text-transform: uppercase; cursor: pointer; box-shadow: 0 4px 25px rgba(201,168,76,0.15); z-index: 99; transition: all 0.3s ease; }
   .ai-chat-btn:hover { background: var(--gold); color: var(--noir); transform: scale(1.05); }
-  .ai-chat-window { position: fixed; bottom: 110px; left: 40px; width: 360px; height: 480px; background: var(--surface); border: 0.5px solid rgba(201,168,76,0.4); box-shadow: 0 10px 40px rgba(0,0,0,0.8); z-index: 1000; display: none; flex-direction: column; transition: all 0.3s ease; }
+  .ai-chat-window { position: fixed; bottom: 110px; left: 40px; width: 550px; height: 650px; background: var(--surface); border: 0.5px solid rgba(201,168,76,0.4); box-shadow: 0 10px 40px rgba(0,0,0,0.8); z-index: 1000; display: none; flex-direction: column; transition: all 0.3s ease; }
   .ai-chat-window.active { display: flex; }
   .ai-chat-header { background: var(--slate); padding: 16px 20px; border-bottom: 0.5px solid rgba(201,168,76,0.2); display: flex; justify-content: space-between; align-items: center; }
   .ai-chat-title { font-family: 'Cormorant Garamond', serif; font-size: 18px; color: var(--gold); font-weight: 500; letter-spacing: 0.05em; }
@@ -1285,38 +1285,31 @@
     .telegram-icon { width: 24px; height: 24px; }
   }
   /* =========================================
-   ФІНАЛЬНИЙ ПАТЧ ДЛЯ МОБІЛЬНОЇ ВЕРСІЇ
+   ПАТЧ: Мобільна кнопка та шари AI
    ========================================= */
 
-/* 1. AI-Гід завжди поверх усього (навіть поверх меню і кошика) */
-.ai-chat-btn { z-index: 999999 !important; }
-.ai-chat-window { z-index: 999999 !important; }
+/* Знижуємо пріоритет кнопки та вікна ШІ, щоб кошик (1000) та меню (9999) ховали їх під собою */
+.ai-chat-btn {
+  z-index: 90 !important;
+}
+.ai-chat-window {
+  z-index: 500 !important;
+}
 
 @media (max-width: 768px) {
-  /* 2. Збільшуємо шрифт посилань у мобільному меню */
-  .g-nav-links li a {
-    font-size: 26px !important; 
-    padding: 16px !important;
-  }
-
-  /* 3. Показуємо приховану кнопку "Долучитися" */
+  /* Показуємо приховану кнопку "Долучитися" всередині мобільного меню */
   .mobile-only-btn {
     display: block !important;
     width: 100%;
     text-align: center;
-    margin-top: 30px;
-  }
-
-  /* Робимо кнопку широкою і зручною для натискання пальцем */
-  .mobile-only-btn .btn-primary {
-    width: 85%;
-    padding: 16px;
-    font-size: 14px;
+    margin-top: 20px;
   }
   
-  /* 4. Піднімаємо AI-кнопку трохи вище, щоб вона не злипалася з кошиком */
-  .ai-chat-btn {
-    bottom: 95px !important;
+  /* Стилізуємо її під розмір меню */
+  .mobile-only-btn .btn-primary {
+    width: 80%;
+    padding: 14px;
+    font-size: 12px;
   }
 }
 </style>
