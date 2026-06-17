@@ -50,13 +50,13 @@ async function sendTelegramNotification(text) {
 // ==========================================
 app.get('/api/locations', async (req, res) => {
     const { data, error } = await supabase.from('locations').select('*');
-    if (error) return res.status(500).json({ error: "Помилка сервера" });
+    if (error) return res.status(500).json({ error: "Помилка сервера", details: error.message });
     res.json(data);
 });
 
 app.post('/api/locations', async (req, res) => {
     const { error } = await supabase.from('locations').insert([req.body]);
-    if (error) return res.status(500).json({ error: "Помилка збереження" });
+    if (error) return res.status(500).json({ error: "Помилка збереження", details: error.message });
     res.status(200).json({ success: true });
 });
 
@@ -77,14 +77,13 @@ app.delete('/api/locations/:id', async (req, res) => {
 // ==========================================
 app.get('/api/products', async (req, res) => {
     const { data, error } = await supabase.from('products').select('*');
-    if (error) return res.status(500).json({ error: "Помилка читання" });
+    if (error) return res.status(500).json({ error: "Помилка читання", details: error.message });
     res.json(data);
 });
 
 app.post('/api/products', upload.single('image'), async (req, res) => {
     try {
         const file = req.file;
-        // Тепер ми витягуємо ВСІ поля з форми
         const { name, description, price, category, producer, weight, tags } = req.body;
 
         if (!file) return res.status(400).json({ error: 'Потрібне фото' });
@@ -99,7 +98,6 @@ app.post('/api/products', upload.single('image'), async (req, res) => {
         const { data: urlData } = supabase.storage.from('products').getPublicUrl(fileName);
         const imageUrl = urlData.publicUrl;
 
-        // Зберігаємо товар з УСІМА полями
         const { error: dbError } = await supabase
             .from('products')
             .insert([{ 
@@ -110,7 +108,7 @@ app.post('/api/products', upload.single('image'), async (req, res) => {
                 category,
                 producer,
                 weight,
-                tags: tags ? [tags] : [] // Зберігаємо тег як масив
+                tags: tags ? [tags] : []
             }]);
 
         if (dbError) throw dbError;
@@ -118,7 +116,7 @@ app.post('/api/products', upload.single('image'), async (req, res) => {
         res.status(200).json({ success: true });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: "Помилка збереження" });
+        res.status(500).json({ error: "Помилка збереження", details: err.message });
     }
 });
 
@@ -145,7 +143,6 @@ app.get('/api/orders', async (req, res) => {
 
 app.post('/api/orders', async (req, res) => {
     try {
-        // Беремо дані так, як їх відправляє твій фронтенд
         const { name, phone, address, product, price } = req.body;
         
         const { error } = await supabase.from('orders').insert([{ 
@@ -168,7 +165,6 @@ app.post('/api/orders', async (req, res) => {
 });
 
 app.put('/api/orders/:id', async (req, res) => {
-    // Оновлення статусу замовлення
     const { error } = await supabase.from('orders').update({ status: req.body.status }).eq('id', req.params.id);
     if (error) return res.status(500).send('Помилка оновлення статусу');
     res.send({ success: true });
@@ -228,7 +224,7 @@ app.post('/api/generate-desc', async (req, res) => {
     Опис має бути українською мовою, складатись з 3-4 речень. Підкресли автентичність, традиції Полісся та натуральність. Пиши звичайним текстом без форматування (без зірочок і жирного шрифту).`;
 
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey.trim()}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey.trim()}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
@@ -250,7 +246,6 @@ app.post('/api/chat', async (req, res) => {
     const apiKey = process.env.GEMINI_API_KEY;
 
     try {
-        // ОНОВЛЕННЯ: Тепер ШІ бере дані напряму з бази Supabase!
         const { data: locations } = await supabase.from('locations').select('name, description');
         const { data: products } = await supabase.from('products').select('name, description, price');
 
@@ -258,17 +253,14 @@ app.post('/api/chat', async (req, res) => {
         Твоє завдання — допомагати туристам та жителям знаходити найкращі місця для відпочинку та купувати крафтові продукти (особливо поліський мацик).
         
         Ось актуальна база даних нашого сайту:
-        ЛОКАЦІЇ (Ресторани, кафе, ферми, маршрути):
-        ${JSON.stringify(locations)}
-        
-        ТОВАРИ (Крафтові продукти, мацики, сири):
-        ${JSON.stringify(products)}
+        ЛОКАЦІЇ: ${JSON.stringify(locations)}
+        ТОВАРИ: ${JSON.stringify(products)}
         
         ПРАВИЛА СПІЛКУВАННЯ:
         1. Спілкуйся виключно українською мовою, дуже ввічливо, гостинно та апетитно.
         2. Рекомендуй заклади, маршрути та товари ТІЛЬКИ з наданої вище бази даних. Якщо закладу чи продукту немає в базі, м'яко скажи, що платформа постійно розвивається і ми додамо його згодом.
         3. Якщо рекомендуєш товар (наприклад, мацик), обов'язково згадай, що його можна замовити прямо у нас на сайті в розділі "Крафтові продукти".
-        4. Відповідай чітко, лаконічно (до 3-4 речень або компактним красивим списком), не використовуй складного форматування Markdown (без зірочок, пиши звичайним текстом).`;
+        4. Відповідай чітко, лаконічно (до 3-4 речень), не використовуй складного форматування Markdown.`;
 
         const prompt = `${systemInstruction}\n\nКористувач запитує: "${message}"\nВідповідь Гіда:`;
 

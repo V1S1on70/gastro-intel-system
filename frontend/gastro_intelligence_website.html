@@ -2327,7 +2327,7 @@ function renderProducts(products) {
         <div class="prod-img-wrap">
           ${tagHtml}
           <div class="prod-category">${prod.category}</div>
-          <img src="${prod.image}" alt="${prod.name}" class="prod-img" loading="lazy">
+          <img src="${prod.image_url}" alt="${prod.name}" class="prod-img" loading="lazy">
         </div>
         <div class="prod-producer">${prod.producer}</div>
         <div class="prod-title">${prod.name}</div>
@@ -2743,47 +2743,62 @@ async function loadAdminMessages() {
 }
 
 // --- ЛОГІКА ДОДАВАННЯ ЛОКАЦІЇ ТА ТОВАРІВ ---
-// Оновлена функція: тепер вміє і додавати новий, і зберігати відредагований товар
 async function submitNewProduct(event) {
   event.preventDefault();
   const btn = document.getElementById('admin-submit-btn');
   const feedback = document.getElementById('admin-feedback');
   const rawTag = document.getElementById('admin-tag').value.trim();
-  const imageValue = document.getElementById('admin-image').value;
+  const fileInput = document.getElementById('admin-file-chooser');
 
-  // РОЗУМНА ПЕРЕВІРКА ФОТО: Вимагаємо фото тільки для НОВИХ товарів
-  if (!editingProductId && (imageValue === 'images/' || imageValue === '')) {
+  // Перевірка: якщо це НОВИЙ товар, фото обов'язкове
+  if (!editingProductId && (!fileInput.files || fileInput.files.length === 0)) {
      feedback.style.display = 'block';
      feedback.style.color = '#ff6b6b';
      feedback.innerText = '❌ Будь ласка, виберіть файл фотографії!';
      setTimeout(() => { feedback.style.display = 'none'; }, 4000);
-     return; // Зупиняємо відправку
+     return;
   }
-
-  const productData = {
-    name: document.getElementById('admin-name').value,
-    producer: document.getElementById('admin-producer').value,
-    category: document.getElementById('admin-cat').value,
-    price: Number(document.getElementById('admin-price').value),
-    weight: document.getElementById('admin-weight').value,
-    image: imageValue,
-    tags: rawTag ? [rawTag] : [],
-    description: document.getElementById('admin-desc').value
-  };
 
   btn.innerText = editingProductId ? 'Збереження...' : 'Публікація...';
   btn.disabled = true;
 
-  // Якщо editingProductId не порожній — відправляємо PUT, інакше POST (новий товар)
-  const url = editingProductId 
-    ? `/api/products/${editingProductId}` 
-    : '/api/products';
-  const method = editingProductId ? 'PUT' : 'POST';
-
   try {
-    const response = await fetch(url, {
-      method: method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(productData)
-    });
+    let response;
+    
+    if (editingProductId) {
+      // РЕДАГУВАННЯ існуючого товару (відправляємо як JSON)
+      const productData = {
+        name: document.getElementById('admin-name').value,
+        producer: document.getElementById('admin-producer').value,
+        category: document.getElementById('admin-cat').value,
+        price: Number(document.getElementById('admin-price').value),
+        weight: document.getElementById('admin-weight').value,
+        tags: rawTag ? [rawTag] : [],
+        description: document.getElementById('admin-desc').value
+      };
+      response = await fetch(`/api/products/${editingProductId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(productData)
+      });
+    } else {
+      // СТВОРЕННЯ НОВОГО ТОВАРУ (відправляємо як FormData разом із фото)
+      const formData = new FormData();
+      formData.append('name', document.getElementById('admin-name').value);
+      formData.append('producer', document.getElementById('admin-producer').value);
+      formData.append('category', document.getElementById('admin-cat').value);
+      formData.append('price', document.getElementById('admin-price').value);
+      formData.append('weight', document.getElementById('admin-weight').value);
+      formData.append('description', document.getElementById('admin-desc').value);
+      if (rawTag) formData.append('tags', rawTag);
+      formData.append('image', fileInput.files[0]);
+
+      response = await fetch('/api/products', {
+        method: 'POST',
+        body: formData 
+      });
+    }
+
     if (response.ok) {
       feedback.style.display = 'block'; 
       feedback.style.color = 'var(--gold)'; 
@@ -2841,7 +2856,7 @@ function editProduct(id) {
   document.getElementById('admin-cat').value = prod.category;
   document.getElementById('admin-price').value = prod.price;
   document.getElementById('admin-weight').value = prod.weight;
-  document.getElementById('admin-image').value = prod.image;
+  document.getElementById('admin-image').value = prod.image_url;
   document.getElementById('admin-tag').value = prod.tags && prod.tags[0] ? prod.tags[0] : '';
   document.getElementById('admin-desc').value = prod.description;
   
