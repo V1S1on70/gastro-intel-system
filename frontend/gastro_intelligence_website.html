@@ -2760,7 +2760,6 @@ async function submitNewProduct(event) {
   const rawTag = document.getElementById('admin-tag').value.trim();
   const fileInput = document.getElementById('admin-file-chooser');
 
-  // Перевірка: якщо це НОВИЙ товар, фото обов'язкове
   if (!editingProductId && (!fileInput.files || fileInput.files.length === 0)) {
      feedback.style.display = 'block';
      feedback.style.color = '#ff6b6b';
@@ -2776,14 +2775,14 @@ async function submitNewProduct(event) {
     let response;
     
     if (editingProductId) {
-      // РЕДАГУВАННЯ існуючого товару (відправляємо як JSON)
+      // РЕДАГУВАННЯ (Надсилаємо JSON з правильними назвами)
       const productData = {
         name: document.getElementById('admin-name').value,
-        producer: document.getElementById('admin-producer').value,
+        manufacturer: document.getElementById('admin-producer').value,
         category: document.getElementById('admin-cat').value,
         price: Number(document.getElementById('admin-price').value),
         weight: document.getElementById('admin-weight').value,
-        tags: rawTag ? [rawTag] : [],
+        tag: rawTag || '', // Виправлено: tag замість tags
         description: document.getElementById('admin-desc').value
       };
       response = await fetch(`/api/products/${editingProductId}`, {
@@ -2792,15 +2791,15 @@ async function submitNewProduct(event) {
         body: JSON.stringify(productData)
       });
     } else {
-      // СТВОРЕННЯ НОВОГО ТОВАРУ (відправляємо як FormData разом із фото)
+      // СТВОРЕННЯ (Надсилаємо FormData з правильними назвами)
       const formData = new FormData();
       formData.append('name', document.getElementById('admin-name').value);
-      formData.append('producer', document.getElementById('admin-producer').value);
+      formData.append('manufacturer', document.getElementById('admin-producer').value); // Виправлено
       formData.append('category', document.getElementById('admin-cat').value);
       formData.append('price', document.getElementById('admin-price').value);
       formData.append('weight', document.getElementById('admin-weight').value);
       formData.append('description', document.getElementById('admin-desc').value);
-      if (rawTag) formData.append('tags', rawTag);
+      formData.append('tag', rawTag || ''); // Виправлено
       formData.append('image', fileInput.files[0]);
 
       response = await fetch('/api/products', {
@@ -2816,7 +2815,7 @@ async function submitNewProduct(event) {
       
       resetProductForm();
       loadAdminProducts(); 
-      loadProducts(); // Оновлюємо вітрину сайту
+      loadProducts(); 
     } else throw new Error('Помилка сервера');
   } catch (error) {
     feedback.style.display = 'block'; feedback.style.color = '#ff6b6b'; feedback.innerText = 'Помилка при з\'єднанні з сервером.';
@@ -2856,22 +2855,29 @@ async function loadAdminProducts() {
 }
 
 // Заповнення форми даними обраного товару для редагування
+// Заповнення форми даними обраного товару для редагування
 function editProduct(id) {
-  const prod = allProducts.find(p => p.id === id);
+  // 1. ЗМІНЕНО === на == (нестроге порівняння)
+  const prod = allProducts.find(p => p.id == id);
   if (!prod) return;
   
   editingProductId = id;
   document.getElementById('admin-name').value = prod.name;
-  document.getElementById('admin-producer').value = prod.producer;
+  
+  // 2. Читаємо правильну колонку з бази (manufacturer)
+  document.getElementById('admin-producer').value = prod.manufacturer || prod.producer || '';
+  
   document.getElementById('admin-cat').value = prod.category;
   document.getElementById('admin-price').value = prod.price;
   document.getElementById('admin-weight').value = prod.weight;
-  document.getElementById('admin-image').value = prod.image_url;
+  document.getElementById('admin-image').value = prod.image_url || '';
   document.getElementById('admin-tag').value = prod.tags && prod.tags[0] ? prod.tags[0] : '';
-  document.getElementById('admin-desc').value = prod.description;
+  document.getElementById('admin-desc').value = prod.description || '';
   
   document.getElementById('admin-product-form-title').innerText = '✏️ Редагувати товар';
   document.getElementById('admin-submit-btn').innerText = 'Зберегти зміни';
+  
+  // Плавно прокручуємо екран вгору до форми
   document.getElementById('admin-product-form').scrollIntoView({ behavior: 'smooth' });
 }
 

@@ -84,7 +84,8 @@ app.get('/api/products', async (req, res) => {
 app.post('/api/products', upload.single('image'), async (req, res) => {
     try {
         const file = req.file;
-        const { name, description, price, category, producer, weight, tags } = req.body;
+        // Читаємо правильні поля (manufacturer та tag)
+        const { name, description, price, category, manufacturer, weight, tag } = req.body;
 
         if (!file) return res.status(400).json({ error: 'Потрібне фото' });
 
@@ -106,9 +107,9 @@ app.post('/api/products', upload.single('image'), async (req, res) => {
                 price: parseFloat(price), 
                 image_url: imageUrl,
                 category,
-                producer,
+                manufacturer: manufacturer || 'ФОП Балдич', // Записуємо в правильну колонку
                 weight,
-                tags: tags ? [tags] : []
+                tag: tag || '' // Записуємо як звичайний текст, а не масив
             }]);
 
         if (dbError) throw dbError;
