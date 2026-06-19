@@ -2261,17 +2261,20 @@ async function loadProducts() {
 }
 
 // Функція, яка шукає всі фірми в базі і додає їх у Dropdown
+// Шукає всі фірми в базі і додає їх у Dropdown фільтра
 function populateProducersList() {
   const producerSelect = document.getElementById('filter-producer');
   if (!producerSelect) return;
   
-  // ВИПРАВЛЕНО: Читаємо manufacturer
+  // Витягуємо унікальні назви фірм
   const uniqueProducers = [...new Set(allProducts.map(p => p.manufacturer || p.producer))].filter(p => p && p.trim() !== "");
   
   producerSelect.innerHTML = '<option value="Всі">Всі виробники</option>';
   
   uniqueProducers.forEach(producer => {
-    producerSelect.innerHTML += `<option value="${producer}">${producer}</option>`;
+    // Екрануємо подвійні лапки, щоб вони не ламали HTML-код
+    const safeValue = producer.replace(/"/g, '&quot;');
+    producerSelect.innerHTML += `<option value="${safeValue}">${producer}</option>`;
   });
 }
 
