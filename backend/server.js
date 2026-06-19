@@ -145,14 +145,16 @@ app.post('/api/orders', async (req, res) => {
     try {
         const { customer, items, totalAmount, status } = req.body;
 
-        // 1. Запис у базу даних Supabase
+        // 1. Запис у базу даних Supabase (використовуємо твої реальні колонки!)
         const { data, error } = await supabase
             .from('orders')
             .insert([{
-                customer_info: customer,
-                order_items: items, 
+                customer_name: customer.name,
+                customer_phone: customer.phone,
+                customer_address: "Не вказано",
+                items: items, 
                 total_price: totalAmount,
-                status: status || 'Нове' // Додаємо статус замовлення
+                status: status || 'Нове'
             }]);
 
         if (error) {
@@ -160,25 +162,12 @@ app.post('/api/orders', async (req, res) => {
             throw new Error("Не вдалося зберегти в БД");
         }
 
-        // 2. Відправка в Telegram (обгорнуто в окремий try-catch)
-        // Якщо Telegram видасть помилку, це НЕ зламає замовлення!
-        try {
-            if (process.env.TG_BOT_TOKEN && process.env.TG_CHAT_ID) {
-                const message = `🔥 Нове замовлення!\nКлієнт: ${customer.name}\nТелефон: ${customer.phone}\nТовари: ${items}\nСума: ${totalAmount} грн`;
-                
-                // Використовуй axios (або fetch, залежно від того, що в тебе підключено на сервері)
-                await axios.post(`https://api.telegram.org/bot${process.env.TG_BOT_TOKEN}/sendMessage`, {
-                    chat_id: process.env.TG_CHAT_ID,
-                    text: message
-                });
-            } else {
-                console.log("⚠️ Telegram ключі не налаштовані. Замовлення збережено лише в БД.");
-            }
-        } catch (tgError) {
-            console.error("⚠️ Помилка відправки в Telegram:", tgError.message);
-        }
+        // 2. Відправка в Telegram через твою існуючу функцію
+        const message = `🔥 <b>НОВЕ ЗАМОВЛЕННЯ!</b>\n\n👤 <b>Клієнт:</b> ${customer.name}\n📞 <b>Телефон:</b> ${customer.phone}\n🛒 <b>Товари:</b> ${items}\n💰 <b>Сума:</b> ${totalAmount} грн`;
+        
+        await sendTelegramNotification(message);
 
-        // Повертаємо клієнту успіх
+        // Повертаємо клієнту статус успіху
         res.status(200).json({ success: true, message: 'Замовлення успішно оформлено' });
 
     } catch (error) {
