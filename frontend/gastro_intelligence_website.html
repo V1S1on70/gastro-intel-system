@@ -2287,13 +2287,14 @@ function applyComplexFilter() {
     filteredData = filteredData.filter(prod => prod.category === catValue);
   }
   
-  // Далі фільтруємо результат ще й за фірмою (якщо обрано не "Всі")
+  // ВИПРАВЛЕНО: фільтруємо за правильною колонкою (manufacturer)
   if (prodValue !== 'Всі') {
-    filteredData = filteredData.filter(prod => prod.producer === prodValue);
+    filteredData = filteredData.filter(prod => (prod.manufacturer || prod.producer) === prodValue);
   }
 
   // Відмальовуємо відфільтровані картки
   renderProducts(filteredData);
+}nderProducts(filteredData);
 }
 
 function renderProducts(products) {
@@ -2895,6 +2896,31 @@ async function deleteProduct(id) {
     }
   } catch (e) { 
     showToast('❌ Помилка з\'єднання з сервером'); 
+  }
+}
+
+// --- ФУНКЦІЯ ДИНАМІЧНОЇ СТАТИСТИКИ ГОЛОВНОЇ СТОРІНКИ ---
+async function loadPublicStats() {
+  try {
+    // 1. Отримуємо локації
+    const locRes = await fetch('/api/locations');
+    const locations = await locRes.json();
+    const locElement = document.getElementById('public-stat-locs');
+    if (locElement) locElement.innerText = locations.length;
+
+    // 2. Отримуємо продукти
+    const prodRes = await fetch('/api/products');
+    const products = await prodRes.json();
+    const prodElement = document.getElementById('public-stat-prods');
+    if (prodElement) prodElement.innerText = products.length;
+
+    // 3. ВИПРАВЛЕНО: Вираховуємо унікальних виробників з правильної колонки (manufacturer)
+    const uniqueProducers = [...new Set(products.map(p => p.manufacturer || p.producer))].filter(p => p && p.trim() !== "");
+    const producerElement = document.getElementById('public-stat-producers');
+    if (producerElement) producerElement.innerText = uniqueProducers.length;
+
+  } catch (error) {
+    console.error("Помилка завантаження реальної статистики:", error);
   }
 }
 
