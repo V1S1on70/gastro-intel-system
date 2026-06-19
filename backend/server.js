@@ -121,16 +121,47 @@ app.post('/api/products', upload.single('image'), async (req, res) => {
     }
 });
 
-app.put('/api/products/:id', async (req, res) => {
-    const { error } = await supabase.from('products').update(req.body).eq('id', req.params.id);
-    if (error) return res.status(500).send('Помилка оновлення');
-    res.send({ success: true });
-});
+app.put('/api/products/:id', upload.single('image'), async (req, res) => {
+    try {
+        const { name, description, price, category, manufacturer, weight, tag } = req.body;
+        
+        // Базові дані для оновлення (без фото)
+        let updateData = {
+            name, 
+            description, 
+            price: parseFloat(price), 
+            category, 
+            manufacturer: manufacturer || 'ФОП Балдич', 
+            weight, 
+            tag: tag || ''
+        };
 
-app.delete('/api/products/:id', async (req, res) => {
-    const { error } = await supabase.from('products').delete().eq('id', req.params.id);
-    if (error) return res.status(500).send('Помилка видалення');
-    res.send({ success: true });
+        // Якщо користувач обрав НОВЕ фото під час редагування
+        if (req.file) {
+            const file = req.file;
+            const fileName = `${Date.now()}-${file.originalname.replace(/\s+/g, '_')}`;
+            const { error: uploadError } = await supabase.storage
+                .from('products')
+                .upload(fileName, file.buffer, { contentType: file.mimetype });
+
+            if (uploadError) throw uploadError;
+
+            const { data: urlData } = supabase.storage.from('products').getPublicUrl(fileName);
+            updateData.image_url = urlData.publicUrl; // Додаємо нове посилання до оновлення
+        }
+
+        const { error: dbError } = await supabase
+            .from('products')
+            .update(updateData)
+            .eq('id', req.params.id);
+
+        if (dbError) throw dbError;
+
+        res.status(200).json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Помилка оновлення", details: err.message });
+    }
 });
 
 // ==========================================

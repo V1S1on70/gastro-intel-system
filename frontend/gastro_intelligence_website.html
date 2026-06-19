@@ -1532,15 +1532,15 @@
     <div class="filters-bar" style="display: flex; align-items: flex-end; flex-wrap: wrap; gap: 24px; padding: 28px 48px; border-bottom: 0.5px solid rgba(138,130,120,0.12);">
       <div style="flex-grow: 1; max-width: 300px;">
         <label style="display: block; font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--stone); margin-bottom: 8px;">Категорія продукції</label>
-        <select class="form-select" id="filter-category" onchange="applyComplexFilter()">
-          <option value="Всі">Всі категорії</option>
-          <option value="Сир">Сир</option>
-          <option value="Печена продукція">Печена продукція</option>
-          <option value="Сиров'ялені делікатеси">Сиров'ялені делікатеси</option>
-          <option value="Копчена продукція">Копчена продукція</option>
-          <option value="Снеки">Снеки</option>
-          <option value="Подарункові корзини">Подарункові корзини</option>
-        </select>
+      <select class="form-select" id="filter-category" onchange="applyComplexFilter()">
+        <option value="Всі">Всі категорії</option>
+        <option value="Мед">Мед</option> <option value="Сир">Сир</option>
+        <option value="Печена продукція">Печена продукція</option>
+        <option value="Сиров'ялені делікатеси">Сиров'ялені делікатеси</option>
+        <option value="Копчена продукція">Копчена продукція</option>
+        <option value="Снеки">Снеки</option>
+        <option value="Подарункові корзини">Подарункові корзини</option>
+      </select>
       </div>
 
       <div style="flex-grow: 1; max-width: 300px;">
@@ -1786,14 +1786,14 @@
             <div class="form-row" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px;">
               <div>
                 <label class="form-label">Категорія</label>
-                <select class="form-select" id="admin-cat">
-                  <option value="Сир">Сир</option>
-                  <option value="Печена продукція">Печена продукція</option>
-                  <option value="Сиров'ялені делікатеси">Сиров'ялені делікатеси</option>
-                  <option value="Копчена продукція">Копчена продукція</option>
-                  <option value="Снеки">Снеки</option>
-                  <option value="Подарункові корзини">Подарункові корзини</option>
-                </select>
+            <select class="form-select" id="admin-cat">
+              <option value="Мед">Мед</option> <option value="Сир">Сир</option>
+              <option value="Печена продукція">Печена продукція</option>
+              <option value="Сиров'ялені делікатеси">Сиров'ялені делікатеси</option>
+              <option value="Копчена продукція">Копчена продукція</option>
+              <option value="Снеки">Снеки</option>
+              <option value="Подарункові корзини">Подарункові корзини</option>
+            </select>
               </div>
               <div><label class="form-label">Ціна (грн)</label><input class="form-input" id="admin-price" type="number" required /></div>
               <div>
@@ -2265,17 +2265,13 @@ function populateProducersList() {
   const producerSelect = document.getElementById('filter-producer');
   if (!producerSelect) return;
   
-  // Витягуємо унікальні назви фірм з усіх товарів
-  const uniqueProducers = [...new Set(allProducts.map(p => p.producer))];
+  // ВИПРАВЛЕНО: Читаємо manufacturer
+  const uniqueProducers = [...new Set(allProducts.map(p => p.manufacturer || p.producer))].filter(p => p && p.trim() !== "");
   
-  // Очищаємо список і залишаємо лише базовий пункт
   producerSelect.innerHTML = '<option value="Всі">Всі виробники</option>';
   
-  // Додаємо кожну знайдену фірму як опцію
   uniqueProducers.forEach(producer => {
-    if(producer && producer.trim() !== "") {
-      producerSelect.innerHTML += `<option value="${producer}">${producer}</option>`;
-    }
+    producerSelect.innerHTML += `<option value="${producer}">${producer}</option>`;
   });
 }
 
@@ -2305,7 +2301,6 @@ function renderProducts(products) {
   if (!container) return;
   container.innerHTML = '';
 
-// ПЕРЕВІРКА НА ПОРОЖНІЙ РЕЗУЛЬТАТ (Empty State)
   if (products.length === 0) {
     container.innerHTML = `
       <div style="grid-column: 1 / -1; text-align: center; padding: 80px 20px; border: 0.5px dashed rgba(201,168,76,0.3); margin-top: 24px;">
@@ -2318,8 +2313,10 @@ function renderProducts(products) {
   }
 
   products.forEach(prod => {
-    const tagHtml = prod.tags && prod.tags.length > 0 
-      ? `<div style="position:absolute; top:16px; left:16px; z-index:2;"><span class="tag-pill" style="background:var(--noir);">${prod.tags[0]}</span></div>` 
+    // ВИПРАВЛЕНО: Зчитуємо правильний тег
+    const tagText = prod.tag || '';
+    const tagHtml = tagText 
+      ? `<div style="position:absolute; top:16px; left:16px; z-index:2;"><span class="tag-pill" style="background:var(--noir);">${tagText}</span></div>` 
       : '';
     
     const cardHtml = `
@@ -2329,7 +2326,7 @@ function renderProducts(products) {
           <div class="prod-category">${prod.category}</div>
           <img src="${prod.image_url}" alt="${prod.name}" class="prod-img" loading="lazy">
         </div>
-        <div class="prod-producer">${prod.producer}</div>
+        <div class="prod-producer">${prod.manufacturer || prod.producer || ''}</div>
         <div class="prod-title">${prod.name}</div>
         <div class="prod-desc">${prod.description}</div>
         <div class="prod-footer">
@@ -2343,8 +2340,6 @@ function renderProducts(products) {
     `;
     container.insertAdjacentHTML('beforeend', cardHtml);
   });
-
-  
 }
 
 // --- ЛОГІКА ДИНАМІЧНОГО КОШИКА ---
@@ -2760,6 +2755,7 @@ async function submitNewProduct(event) {
   const rawTag = document.getElementById('admin-tag').value.trim();
   const fileInput = document.getElementById('admin-file-chooser');
 
+  // Перевірка: якщо це НОВИЙ товар, фото обов'язкове
   if (!editingProductId && (!fileInput.files || fileInput.files.length === 0)) {
      feedback.style.display = 'block';
      feedback.style.color = '#ff6b6b';
@@ -2772,36 +2768,30 @@ async function submitNewProduct(event) {
   btn.disabled = true;
 
   try {
-    let response;
+    // Збираємо всі дані (і текст, і файл) в один об'єкт FormData
+    const formData = new FormData();
+    formData.append('name', document.getElementById('admin-name').value);
+    formData.append('manufacturer', document.getElementById('admin-producer').value);
+    formData.append('category', document.getElementById('admin-cat').value);
+    formData.append('price', document.getElementById('admin-price').value);
+    formData.append('weight', document.getElementById('admin-weight').value);
+    formData.append('description', document.getElementById('admin-desc').value);
+    formData.append('tag', rawTag || '');
     
+    // Додаємо файл, тільки якщо користувач його дійсно обрав
+    if (fileInput.files && fileInput.files.length > 0) {
+        formData.append('image', fileInput.files[0]);
+    }
+
+    let response;
     if (editingProductId) {
-      // РЕДАГУВАННЯ (Надсилаємо JSON з правильними назвами)
-      const productData = {
-        name: document.getElementById('admin-name').value,
-        manufacturer: document.getElementById('admin-producer').value,
-        category: document.getElementById('admin-cat').value,
-        price: Number(document.getElementById('admin-price').value),
-        weight: document.getElementById('admin-weight').value,
-        tag: rawTag || '', // Виправлено: tag замість tags
-        description: document.getElementById('admin-desc').value
-      };
+      // РЕДАГУВАННЯ
       response = await fetch(`/api/products/${editingProductId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(productData)
+        body: formData // Відправляємо FormData замість JSON
       });
     } else {
-      // СТВОРЕННЯ (Надсилаємо FormData з правильними назвами)
-      const formData = new FormData();
-      formData.append('name', document.getElementById('admin-name').value);
-      formData.append('manufacturer', document.getElementById('admin-producer').value); // Виправлено
-      formData.append('category', document.getElementById('admin-cat').value);
-      formData.append('price', document.getElementById('admin-price').value);
-      formData.append('weight', document.getElementById('admin-weight').value);
-      formData.append('description', document.getElementById('admin-desc').value);
-      formData.append('tag', rawTag || ''); // Виправлено
-      formData.append('image', fileInput.files[0]);
-
+      // СТВОРЕННЯ
       response = await fetch('/api/products', {
         method: 'POST',
         body: formData 
@@ -2815,7 +2805,7 @@ async function submitNewProduct(event) {
       
       resetProductForm();
       loadAdminProducts(); 
-      loadProducts(); 
+      loadProducts(); // Оновлюємо вітрину сайту
     } else throw new Error('Помилка сервера');
   } catch (error) {
     feedback.style.display = 'block'; feedback.style.color = '#ff6b6b'; feedback.innerText = 'Помилка при з\'єднанні з сервером.';
@@ -2855,29 +2845,25 @@ async function loadAdminProducts() {
 }
 
 // Заповнення форми даними обраного товару для редагування
-// Заповнення форми даними обраного товару для редагування
 function editProduct(id) {
-  // 1. ЗМІНЕНО === на == (нестроге порівняння)
   const prod = allProducts.find(p => p.id == id);
   if (!prod) return;
   
   editingProductId = id;
-  document.getElementById('admin-name').value = prod.name;
-  
-  // 2. Читаємо правильну колонку з бази (manufacturer)
+  document.getElementById('admin-name').value = prod.name || '';
   document.getElementById('admin-producer').value = prod.manufacturer || prod.producer || '';
-  
-  document.getElementById('admin-cat').value = prod.category;
-  document.getElementById('admin-price').value = prod.price;
-  document.getElementById('admin-weight').value = prod.weight;
+  document.getElementById('admin-cat').value = prod.category || '';
+  document.getElementById('admin-price').value = prod.price || '';
+  document.getElementById('admin-weight').value = prod.weight || '';
   document.getElementById('admin-image').value = prod.image_url || '';
-  document.getElementById('admin-tag').value = prod.tags && prod.tags[0] ? prod.tags[0] : '';
+  
+  // ВИПРАВЛЕНО: читаємо tag як звичайний текст із бази
+  document.getElementById('admin-tag').value = prod.tag || ''; 
+  
   document.getElementById('admin-desc').value = prod.description || '';
   
   document.getElementById('admin-product-form-title').innerText = '✏️ Редагувати товар';
   document.getElementById('admin-submit-btn').innerText = 'Зберегти зміни';
-  
-  // Плавно прокручуємо екран вгору до форми
   document.getElementById('admin-product-form').scrollIntoView({ behavior: 'smooth' });
 }
 
