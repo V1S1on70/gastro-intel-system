@@ -1505,7 +1505,7 @@
       <div class="map-layout">
         
         <div class="map-sidebar">
-          <input class="map-search" id="map-search-input" type="text" placeholder="Пошук локацій..." />
+          <input class="map-search" id="map-search-input" type="text" placeholder="Пошук локацій..." oninput="handleMapSearch(this.value)" />
           <div id="map-sidebar-list" style="overflow-y: auto; max-height: 500px;"></div>
         </div>
         
@@ -2221,6 +2221,29 @@ function renderMap(locations) {
       sidebarList.appendChild(sidebarItem);
     }
   });
+}
+
+// --- ЖИВИЙ ПОШУК ПО КАРТІ ТА БОКОВОМУ МЕНЮ ---
+function handleMapSearch(query) {
+  const searchTerm = query.toLowerCase().trim();
+  
+  // Якщо поле пошуку порожнє — показуємо абсолютно всі локації
+  if (searchTerm === '') {
+    renderMap(allLocations);
+    return;
+  } 
+  
+  // Фільтруємо локації за назвою, містом або категорією
+  const filteredLocs = allLocations.filter(loc => {
+    const nameMatch = loc.name && loc.name.toLowerCase().includes(searchTerm);
+    const cityMatch = loc.city && loc.city.toLowerCase().includes(searchTerm);
+    const catMatch = loc.category && loc.category.toLowerCase().includes(searchTerm);
+    
+    return nameMatch || cityMatch || catMatch;
+  });
+  
+  // Відмальовуємо лише ті маркери та пункти меню, які співпали з пошуком
+  renderMap(filteredLocs);
 }
 
 function selectMapLocationById(id) {
