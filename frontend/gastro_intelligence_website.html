@@ -2366,6 +2366,21 @@ function addToCart(productId) {
     showToast(`🛒 "${prod.name}" додано до кошика!`);
 }
 
+function showToast(message) {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerText = message;
+    container.appendChild(toast);
+    
+    setTimeout(() => toast.classList.add('show'), 10);
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 2500);
+}
+
 function changeQuantity(productId, delta) {
     // Змінено === на ==
     const itemIndex = cart.findIndex(i => i.product.id == productId);
@@ -2447,11 +2462,14 @@ async function submitOrder(event) {
     const total = cart.reduce((sum, item) => sum + (Number(item.product.price) * item.quantity), 0);
     const itemsList = cart.map(item => `${item.product.name} (x${item.quantity})`).join(', ');
 
+    // НОВИЙ ФОРМАТ ДАНИХ ДЛЯ SUPABASE
     const orderData = { 
-      product: itemsList, 
-      price: total, 
-      name: document.getElementById('order-name').value,
-      phone: document.getElementById('order-phone').value, 
+      customer: {
+          name: document.getElementById('order-name').value,
+          phone: document.getElementById('order-phone').value
+      },
+      items: itemsList,
+      totalAmount: total,
       status: "Нове" 
     };
 
@@ -2492,21 +2510,32 @@ async function loadAdminOrders() {
     
     container.innerHTML = '';
     
-    // Робимо reverse(), щоб нові замовлення були зверху
     orders.reverse().forEach(o => {
-      // Визначаємо колір залежно від статусу
-      let statusColor = '#4cd137'; // зелений для Нового
-      if (o.status === 'Обробляється') statusColor = '#fbc531'; // жовтий
-      if (o.status === 'Виконано') statusColor = '#00a8ff'; // синій
-      if (o.status === 'Скасовано') statusColor = '#7f8c8d'; // сірий
+      let statusColor = '#4cd137'; 
+      if (o.status === 'Обробляється') statusColor = '#fbc531'; 
+      if (o.status === 'Виконано') statusColor = '#00a8ff'; 
+      if (o.status === 'Скасовано') statusColor = '#7f8c8d'; 
 
-      // Перетворюємо довгий рядок товарів на красивий список
+      // Зчитуємо дані з бази безпечно (чи це Supabase, чи старі файли)
+      const orderItemsText = o.order_items || o.product || '';
+      const orderPrice = o.total_price || o.price || 0;
+      
+      // Зчитуємо ім'я та телефон клієнта
+      let clientName = 'Не вказано';
+      let clientPhone = 'Не вказано';
+      if (o.customer_info) {
+          clientName = o.customer_info.name;
+          clientPhone = o.customer_info.phone;
+      } else if (o.name) {
+          clientName = o.name;
+          clientPhone = o.phone;
+      }
+
       let productsListHtml = '';
-      if (o.product) {
-        const items = o.product.split(', ');
+      if (orderItemsText) {
+        const items = orderItemsText.split(', ');
         productsListHtml = '<ul style="list-style:none; padding:0; margin: 12px 0;">';
         items.forEach(item => {
-          // Виділяємо кількість (x1), (x2) золотим кольором
           const formattedItem = item.replace(/\((x\d+)\)/g, '<strong style="color:var(--gold);">$1</strong>');
           productsListHtml += `<li style="padding: 8px 0; border-bottom: 0.5px dashed rgba(138,130,120,0.2); font-size: 14px; color: var(--ivory);">${formattedItem}</li>`;
         });
@@ -2518,10 +2547,10 @@ async function loadAdminOrders() {
           
           <div class="msg-header" style="border-bottom: 0.5px solid rgba(201,168,76,0.2); padding-bottom: 16px; margin-bottom: 20px;">
             <div style="display:flex; align-items:center; gap: 16px;">
-              <span style="color: ${statusColor}; font-weight:bold; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase;">● ${o.status}</span>
+              <span style="color: ${statusColor}; font-weight:bold; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase;">● ${o.status || 'Нове'}</span>
               <span style="color: var(--stone); font-size: 11px; font-family: monospace;">№ ${o.id}</span>
             </div>
-            <span>${o.date ? new Date(o.date).toLocaleString('uk-UA') : ''}</span>
+            <span>${o.created_at ? new Date(o.created_at).toLocaleString('uk-UA') : ''}</span>
           </div>
 
           <div style="display: grid; grid-template-columns: 1fr; gap: 24px;">
@@ -2531,7 +2560,7 @@ async function loadAdminOrders() {
                 <div style="font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--stone); margin-bottom: 8px;">Перелік товарів</div>
                 ${productsListHtml}
                 <div style="font-family: 'Cormorant Garamond', serif; font-size: 28px; color:var(--gold); margin-top:16px; line-height: 1;">
-                  Разом: ${o.price} грн
+                  Разом: ${orderPrice} грн
                 </div>
               </div>
 
@@ -2539,11 +2568,11 @@ async function loadAdminOrders() {
                 <div style="font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--stone); margin-bottom: 16px;">Дані клієнта</div>
                 <div style="margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
                   <span style="font-size: 16px;">👤</span>
-                  <strong style="color:var(--ivory); font-size: 15px;">${o.name || 'Не вказано'}</strong>
+                  <strong style="color:var(--ivory); font-size: 15px;">${clientName}</strong>
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px;">
                   <span style="font-size: 16px;">📞</span>
-                  <a href="tel:${o.phone}" style="color:var(--gold); text-decoration: none; font-size: 15px; font-weight: 500;">${o.phone}</a>
+                  <a href="tel:${clientPhone}" style="color:var(--gold); text-decoration: none; font-size: 15px; font-weight: 500;">${clientPhone}</a>
                 </div>
               </div>
 
