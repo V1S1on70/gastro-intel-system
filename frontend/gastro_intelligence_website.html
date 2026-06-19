@@ -1479,11 +1479,11 @@
     
     <div class="filters-bar">
       <button class="filter-btn active" onclick="applyFilter('Всі', this)">Всі</button>
-      <button class="filter-btn" onclick="applyFilter('Регіональна кухня', this)">Ресторани</button>
-      <button class="filter-btn" onclick="applyFilter('Крафтове пиво', this)">Кафе та броварні</button>
-      <button class="filter-btn" onclick="applyFilter('Фермерська садиба', this)">Фермерські садиби</button>
-      <button class="filter-btn" onclick="applyFilter('Ринок', this)">Ринки</button>
-      <button class="filter-btn" onclick="applyFilter('Маршрут', this)">Маршрути</button>
+      <button class="filter-btn" onclick="applyFilter('РЕСТОРАНИ', this)">Ресторани</button>
+      <button class="filter-btn" onclick="applyFilter('КАФЕ ТА БРОВАРНІ', this)">Кафе та броварні</button>
+      <button class="filter-btn" onclick="applyFilter('ФЕРМЕРСЬКІ САДИБИ', this)">Фермерські садиби</button>
+      <button class="filter-btn" onclick="applyFilter('РИНКИ', this)">Ринки</button>
+      <button class="filter-btn" onclick="applyFilter('ВИРОБНИЦТВО', this)">Виробництво</button>
     </div>
     
     <div class="loc-list">
@@ -2065,7 +2065,12 @@ function applyFilter(category, btnElement) {
   if (category === 'Всі') {
     renderLocationsList(allLocations);
   } else {
-    const filteredData = allLocations.filter(loc => loc.category === category);
+    // Порівнюємо без урахування великих/малих літер
+    const filterCat = category.trim().toUpperCase();
+    const filteredData = allLocations.filter(loc => {
+        const dbCat = (loc.category || '').trim().toUpperCase();
+        return dbCat === filterCat;
+    });
     renderLocationsList(filteredData);
   }
 }
@@ -2075,17 +2080,27 @@ function renderLocationsList(locations) {
   if (!listContainer) return;
   listContainer.innerHTML = '';
 
+  if (locations.length === 0) {
+    listContainer.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--stone);">Нічого не знайдено</div>';
+    return;
+  }
+
   locations.forEach((loc, index) => {
     const rankNum = String(index + 1).padStart(2, '0');
     const scorePercent = (loc.ai_rating / 10) * 100;
-    const tagHtml = loc.tags && loc.tags.length > 0 ? `<span class="loc-row-tag">${loc.tags[0]}</span>` : '';
+    
+    // Виводимо категорію як тег
+    const tagHtml = `<span class="loc-row-tag">${loc.category || ''}</span>`;
+    // Виводимо адресу замість undefined
+    const addressText = loc.address || '';
 
+    // РОБИМО РЯДОК КЛІКАБЕЛЬНИМ (перекидає на карту і центрує маркер)
     const rowHtml = `
-      <div class="loc-row reveal delay-${(index % 3) + 1}">
+      <div class="loc-row reveal delay-${(index % 3) + 1}" onclick="showPage('map'); setTimeout(() => selectMapLocationById('${loc.id}'), 500)">
         <div class="loc-rank">${rankNum}</div>
         <div>
           <div class="loc-row-name">${loc.name}</div>
-          <div class="loc-row-sub">${loc.city} · ${loc.category}</div>
+          <div class="loc-row-sub">${loc.city}</div>
         </div>
         <div>${tagHtml}</div>
         <div>
@@ -2095,7 +2110,7 @@ function renderLocationsList(locations) {
           </div>
         </div>
         <div class="loc-row-score-val" style="color:var(--gold)">${loc.ai_rating}</div>
-        <div style="font-size:11px; color:var(--stone); text-align:right;">${loc.price_range}</div>
+        <div style="font-size:11px; color:var(--stone); text-align:right;">${addressText}</div>
       </div>
     `;
     listContainer.insertAdjacentHTML('beforeend', rowHtml);
@@ -2157,23 +2172,17 @@ function renderMap(locations) {
   if (!sidebarList) return;
   sidebarList.innerHTML = '';
 
-  // 1. Якщо карта ще не створена - створюємо її
   if (!myMap) {
-    // Центруємо на місті Рівне (зум 8)
     myMap = L.map('real-interactive-map').setView([50.6199, 26.2516], 8);
-
-    // Додаємо стильний темний дизайн карти (Dark Matter)
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; OpenStreetMap & CartoDB'
     }).addTo(myMap);
   } else {
-    // Якщо карта вже є (наприклад, після фільтрації), очищаємо старі маркери
     myMap.eachLayer((layer) => {
       if (layer instanceof L.Marker) layer.remove();
     });
   }
 
-  // 2. Створюємо кастомну золоту іконку для маркерів
   const goldIcon = L.divIcon({
     className: 'custom-gold-marker',
     html: '<div style="background: var(--gold); width: 12px; height: 12px; border-radius: 50%; border: 3px solid #1A1A1A; box-shadow: 0 0 10px rgba(201,168,76,0.8);"></div>',
@@ -2181,14 +2190,14 @@ function renderMap(locations) {
     iconAnchor: [9, 9]
   });
 
-  // 3. Додаємо маркери з бази даних
   locations.forEach((loc) => {
-    if (loc.coordinates && loc.coordinates.lat && loc.coordinates.lng) {
+    // Зчитуємо правильні колонки з бази Supabase!
+    const lat = parseFloat(loc.latitude);
+    const lng = parseFloat(loc.longitude);
+
+    if (!isNaN(lat) && !isNaN(lng)) {
+      const marker = L.marker([lat, lng], { icon: goldIcon }).addTo(myMap);
       
-      // Ставимо точку на карту
-      const marker = L.marker([loc.coordinates.lat, loc.coordinates.lng], { icon: goldIcon }).addTo(myMap);
-      
-      // Додаємо спливаюче вікно при кліку
       marker.bindPopup(`
         <div style="font-family: 'Inter', sans-serif; text-align: center;">
           <strong style="color: #1A1A1A; font-size: 14px;">${loc.name}</strong><br>
@@ -2196,7 +2205,6 @@ function renderMap(locations) {
         </div>
       `);
 
-      // Додаємо локацію в бокове меню
       const sidebarItem = document.createElement('div');
       sidebarItem.className = 'map-item';
       sidebarItem.innerHTML = `
@@ -2204,9 +2212,9 @@ function renderMap(locations) {
         <div class="map-item-info"><span>${loc.city}</span><span style="color:var(--gold);">${loc.ai_rating} ★</span></div>
       `;
       
-      // При кліку на меню - карта плавно летить до точки
+      // При кліку в боковому меню
       sidebarItem.onclick = () => {
-        myMap.flyTo([loc.coordinates.lat, loc.coordinates.lng], 14, { animate: true, duration: 1.5 });
+        myMap.flyTo([lat, lng], 14, { animate: true, duration: 1.5 });
         setTimeout(() => marker.openPopup(), 1500);
       };
       
@@ -2215,9 +2223,15 @@ function renderMap(locations) {
   });
 }
 
-function selectMapLocationById(id, x, y) {
-  const loc = allLocations.find(l => l.id === id);
-  if(loc) selectMapLocation(loc, x, y);
+function selectMapLocationById(id) {
+  const loc = allLocations.find(l => String(l.id) === String(id));
+  if (loc) {
+    const lat = parseFloat(loc.latitude);
+    const lng = parseFloat(loc.longitude);
+    if (!isNaN(lat) && !isNaN(lng) && myMap) {
+      myMap.flyTo([lat, lng], 14, { animate: true, duration: 1.5 });
+    }
+  }
 }
 
 function selectMapLocation(loc, x, y) {
