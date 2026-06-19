@@ -143,24 +143,47 @@ app.get('/api/orders', async (req, res) => {
 
 app.post('/api/orders', async (req, res) => {
     try {
-        const { name, phone, address, product, price } = req.body;
-        
-        const { error } = await supabase.from('orders').insert([{ 
-            customer_name: name, 
-            customer_phone: phone, 
-            customer_address: address || 'Не вказано',
-            items: product, 
-            total_price: price 
-        }]);
+        const { customer, items, totalAmount, status } = req.body;
 
-        if (error) throw error;
+        // 1. Запис у базу даних Supabase
+        const { data, error } = await supabase
+            .from('orders')
+            .insert([{
+                customer_info: customer,
+                order_items: items, 
+                total_price: totalAmount,
+                status: status || 'Нове' // Додаємо статус замовлення
+            }]);
 
-        const telegramMsg = `🚨 <b>НОВЕ ЗАМОВЛЕННЯ!</b>\n\n👤 <b>Клієнт:</b> ${name}\n📞 <b>Телефон:</b> ${phone}\n🛒 <b>Товари:</b> ${product}\n💰 <b>Сума:</b> ${price} грн`;
-        await sendTelegramNotification(telegramMsg);
+        if (error) {
+            console.error("❌ Помилка запису в Supabase:", error.message);
+            throw new Error("Не вдалося зберегти в БД");
+        }
 
-        res.status(200).json({ success: true });
-    } catch (err) {
-        res.status(500).json({ error: "Помилка збереження" });
+        // 2. Відправка в Telegram (обгорнуто в окремий try-catch)
+        // Якщо Telegram видасть помилку, це НЕ зламає замовлення!
+        try {
+            if (process.env.TG_BOT_TOKEN && process.env.TG_CHAT_ID) {
+                const message = `🔥 Нове замовлення!\nКлієнт: ${customer.name}\nТелефон: ${customer.phone}\nТовари: ${items}\nСума: ${totalAmount} грн`;
+                
+                // Використовуй axios (або fetch, залежно від того, що в тебе підключено на сервері)
+                await axios.post(`https://api.telegram.org/bot${process.env.TG_BOT_TOKEN}/sendMessage`, {
+                    chat_id: process.env.TG_CHAT_ID,
+                    text: message
+                });
+            } else {
+                console.log("⚠️ Telegram ключі не налаштовані. Замовлення збережено лише в БД.");
+            }
+        } catch (tgError) {
+            console.error("⚠️ Помилка відправки в Telegram:", tgError.message);
+        }
+
+        // Повертаємо клієнту успіх
+        res.status(200).json({ success: true, message: 'Замовлення успішно оформлено' });
+
+    } catch (error) {
+        console.error('❌ Критична помилка обробки замовлення:', error);
+        res.status(500).json({ error: 'Внутрішня помилка сервера' });
     }
 });
 
