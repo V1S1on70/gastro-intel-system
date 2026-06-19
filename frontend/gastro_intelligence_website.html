@@ -2350,10 +2350,12 @@ function renderProducts(products) {
 // --- ЛОГІКА ДИНАМІЧНОГО КОШИКА ---
 
 function addToCart(productId) {
-    const prod = allProducts.find(p => p.id === productId);
+    // Змінено === на ==
+    const prod = allProducts.find(p => p.id == productId);
     if (!prod) return;
     
-    const existingItem = cart.find(item => item.product.id === productId);
+    // Змінено === на ==
+    const existingItem = cart.find(item => item.product.id == productId);
     if (existingItem) {
         existingItem.quantity += 1;
     } else {
@@ -2364,23 +2366,9 @@ function addToCart(productId) {
     showToast(`🛒 "${prod.name}" додано до кошика!`);
 }
 
-function showToast(message) {
-    const container = document.getElementById('toast-container');
-    if (!container) return;
-    const toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.innerText = message;
-    container.appendChild(toast);
-    
-    setTimeout(() => toast.classList.add('show'), 10);
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 2500);
-}
-
 function changeQuantity(productId, delta) {
-    const itemIndex = cart.findIndex(i => i.product.id === productId);
+    // Змінено === на ==
+    const itemIndex = cart.findIndex(i => i.product.id == productId);
     if (itemIndex === -1) return;
     
     cart[itemIndex].quantity += delta;
