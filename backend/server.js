@@ -163,7 +163,27 @@ app.put('/api/products/:id', upload.single('image'), async (req, res) => {
         res.status(500).json({ error: "Помилка оновлення", details: err.message });
     }
 });
-
+app.delete('/api/products/:id', async (req, res) => {
+    try {
+        // Перетворюємо текстовий ID з URL на строге число для бази даних
+        const productId = parseInt(req.params.id);
+        
+        const { error } = await supabase
+            .from('products')
+            .delete()
+            .eq('id', productId);
+            
+        if (error) {
+            console.error("❌ Помилка БД при видаленні:", error.message);
+            throw error;
+        }
+        
+        res.status(200).json({ success: true });
+    } catch (err) {
+        console.error("❌ Серверна помилка видалення:", err.message);
+        res.status(500).json({ error: "Помилка видалення", details: err.message });
+    }
+});
 // ==========================================
 // 🛒 МАРШРУТИ ЗАМОВЛЕНЬ
 // ==========================================

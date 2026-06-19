@@ -2878,16 +2878,24 @@ function resetProductForm() {
 }
 
 // Функція видалення товару
+// Функція видалення товару
 async function deleteProduct(id) {
-  if (!confirm('Ви впевнені, що хочете видалити цей товар з бази даних?')) return;
+  if (!confirm('Ви впевнені, що хочете назавжди видалити цей товар з бази даних?')) return;
+  
   try {
     const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
+    
     if (res.ok) {
       showToast('🗑️ Товар успішно видалено');
-      loadAdminProducts();
-      loadProducts();
+      loadAdminProducts(); // Оновлюємо список в адмінці
+      loadProducts();      // Оновлюємо вітрину сайту
+    } else {
+      // Якщо сервер повернув помилку (наприклад, 500)
+      showToast('❌ Сервер відхилив видалення. Перевірте консоль.');
     }
-  } catch (e) { showToast('❌ Помилка видалення товару'); }
+  } catch (e) { 
+    showToast('❌ Помилка з\'єднання з сервером'); 
+  }
 }
 
 // --- ФУНКЦІЯ ШТУЧНОГО ІНТЕЛЕКТУ ДЛЯ ГЕНЕРАЦІЇ ОПИСУ ---
