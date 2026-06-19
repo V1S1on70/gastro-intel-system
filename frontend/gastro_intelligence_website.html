@@ -2500,6 +2500,7 @@ async function submitOrder(event) {
 }
 
 // Оновлена функція для Адмінки (Деталізовані замовлення у стилі CRM)
+// Оновлена функція для Адмінки (Деталізовані замовлення у стилі CRM)
 async function loadAdminOrders() {
   const container = document.getElementById('admin-orders-list');
   container.innerHTML = '<p style="color:var(--stone);">Завантаження замовлень...</p>';
@@ -2516,20 +2517,12 @@ async function loadAdminOrders() {
       if (o.status === 'Виконано') statusColor = '#00a8ff'; 
       if (o.status === 'Скасовано') statusColor = '#7f8c8d'; 
 
-      // Зчитуємо дані з бази безпечно (чи це Supabase, чи старі файли)
-      const orderItemsText = o.order_items || o.product || '';
+      // ЗЧИТУЄМО ДАНІ З НОВИХ КОЛОНОК БАЗИ SUPABASE
+      const orderItemsText = o.items || o.order_items || o.product || '';
       const orderPrice = o.total_price || o.price || 0;
       
-      // Зчитуємо ім'я та телефон клієнта
-      let clientName = 'Не вказано';
-      let clientPhone = 'Не вказано';
-      if (o.customer_info) {
-          clientName = o.customer_info.name;
-          clientPhone = o.customer_info.phone;
-      } else if (o.name) {
-          clientName = o.name;
-          clientPhone = o.phone;
-      }
+      const clientName = o.customer_name || (o.customer_info ? o.customer_info.name : o.name) || 'Не вказано';
+      const clientPhone = o.customer_phone || (o.customer_info ? o.customer_info.phone : o.phone) || 'Не вказано';
 
       let productsListHtml = '';
       if (orderItemsText) {
