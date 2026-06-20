@@ -1397,27 +1397,47 @@ async function loadPublicStats() {
   }
 }
 
-// --- 🤖 ЛОГІКА JARVIS MODAL (Інтерфейс карти Тоні Старка) ---
+// --- 🤖 БЕЗПЕЧНИЙ J.A.R.V.I.S. (Не боїться відсутності даних) ---
 function openJarvisModal(loc) {
-  document.getElementById('jarvis-title').innerText = loc.name;
-  document.getElementById('jarvis-rating').innerText = loc.ai_rating || 'N/A';
-  // ... інші поля ...
-  
-  const placeholders = [
-    'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&q=80&w=1000',
-    'https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&q=80&w=1000'
-  ];
-  document.getElementById('jarvis-img').src = loc.image_url || placeholders[Math.floor(Math.random() * placeholders.length)];
-  
-  // ДОДАЄМО СЮДИ ЛОГІКУ КНОПКИ
-  const routeBtn = document.getElementById('jarvis-route-btn');
-  if (routeBtn) {
-    routeBtn.onclick = () => {
-      window.open(`https://www.google.com/maps/dir/?api=1&destination=${loc.latitude},${loc.longitude}`, '_blank');
-    };
-  }
+  try {
+    document.getElementById('jarvis-title').innerText = loc.name || 'Невідома локація';
+    document.getElementById('jarvis-rating').innerText = loc.ai_rating || 'N/A';
+    document.getElementById('jarvis-cat').innerText = loc.category || 'Не вказано';
+    document.getElementById('jarvis-city').innerText = loc.city || 'Не вказано';
+    document.getElementById('jarvis-price').innerText = loc.price_range || 'Уточнюється';
+    
+    // Перевіряємо, чи є координати для тексту
+    const latStr = loc.latitude ? parseFloat(loc.latitude).toFixed(4) : '...';
+    const lngStr = loc.longitude ? parseFloat(loc.longitude).toFixed(4) : '...';
+    document.getElementById('jarvis-coords').innerText = (latStr !== '...' && lngStr !== '...') ? `${latStr}°, ${lngStr}°` : 'Координати відсутні';
+    
+    document.getElementById('jarvis-desc').innerText = loc.description || 'Детальна інформація відсутня. Ви можете додати її через адмін-панель.';
+    
+    const placeholders = [
+      'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&q=80&w=1000',
+      'https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&q=80&w=1000'
+    ];
+    // Якщо в базі NULL або порожньо — ставимо красиву заглушку
+    document.getElementById('jarvis-img').src = loc.image_url || placeholders[Math.floor(Math.random() * placeholders.length)];
 
-  document.getElementById('jarvis-modal').classList.add('active');
+    // Кнопка маршруту (ховається, якщо немає координат)
+    const routeBtn = document.getElementById('jarvis-route-btn');
+    if (routeBtn) {
+      if (latStr !== '...' && lngStr !== '...') {
+          routeBtn.style.display = 'block';
+          routeBtn.onclick = () => {
+            // Офіційний формат Google Maps
+            window.open(`https://www.google.com/maps/dir/?api=1&destination=${loc.latitude},${loc.longitude}`, '_blank');
+          };
+      } else {
+          routeBtn.style.display = 'none'; 
+      }
+    }
+
+    document.getElementById('jarvis-modal').classList.add('active');
+  } catch (e) {
+    console.error("Помилка при відкритті інтерфейсу J.A.R.V.I.S.:", e);
+  }
 }
 
 function closeJarvisModal() { 
@@ -1552,6 +1572,7 @@ function renderFeaturedLocations(locations) {
 // --- ЛОГІКА КАРТИ (Кінематографічний підліт + Виправлено кнопку) ---
 let myMap = null; 
 
+// --- 🗺️ БЕЗПЕЧНИЙ РЕНДЕР КАРТИ (Ігнорує биті координати) ---
 function renderMap(locations) {
   const sidebarList = document.getElementById('map-sidebar-list');
   if (!sidebarList) return;
@@ -1585,37 +1606,33 @@ function renderMap(locations) {
     const lat = parseFloat(loc.latitude);
     const lng = parseFloat(loc.longitude);
 
-    if (!isNaN(lat) && !isNaN(lng)) {
+    // 🛡️ БРОНЕБІЙНИЙ ЗАХИСТ: Малюємо маркер ТІЛЬКИ якщо є реальні цифри
+    if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
       const marker = L.marker([lat, lng], { icon: goldIcon }).addTo(myMap);
       
-      // 🚀 ТУТ ВИПРАВЛЕНО: Використовуємо openJarvisModalById
       marker.bindPopup(`
         <div style="text-align: center; padding: 4px; font-family: 'Inter', sans-serif;">
           <div style="font-size: 8px; color: var(--gold); letter-spacing: 0.3em; margin-bottom: 8px;">ЦІЛЬ ЗНАЙДЕНО</div>
-          <strong style="font-family: 'Cormorant Garamond', serif; font-size: 20px; color: var(--ivory); font-weight: 500;">${loc.name}</strong>
+          <strong style="font-family: 'Cormorant Garamond', serif; font-size: 20px; color: var(--ivory); font-weight: 500;">${loc.name || 'Локація'}</strong>
           <button class="cyber-popup-btn" onclick="openJarvisModalById('${loc.id}')">[ СКАНУВАТИ ]</button>
         </div>
       `);
       
       marker.on('click', function(e) {
         myMap.flyTo([lat, lng], 16, { animate: true, duration: 1.5 });
-        myMap.once('moveend', function() {
-            marker.openPopup();
-        });
+        myMap.once('moveend', function() { marker.openPopup(); });
       });
 
       const sidebarItem = document.createElement('div');
       sidebarItem.className = 'map-item';
       sidebarItem.innerHTML = `
-        <div class="map-item-name">${loc.name}</div>
-        <div class="map-item-info"><span>${loc.city}</span><span style="color:var(--gold);">${loc.ai_rating} ★</span></div>
+        <div class="map-item-name">${loc.name || 'Без назви'}</div>
+        <div class="map-item-info"><span>${loc.city || 'Рівненщина'}</span><span style="color:var(--gold);">${loc.ai_rating || '0.0'} ★</span></div>
       `;
       
       sidebarItem.onclick = () => {
         myMap.flyTo([lat, lng], 16, { animate: true, duration: 1.5 });
-        myMap.once('moveend', function() {
-            marker.openPopup();
-        });
+        myMap.once('moveend', function() { marker.openPopup(); });
       };
       
       sidebarList.appendChild(sidebarItem);
