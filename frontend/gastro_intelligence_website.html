@@ -9,18 +9,26 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
 <style>
-  :root {
-    --noir: #0A0A0A;
+ :root {
+    /* 💎 Преміальна палітра Pro Max */
+    --noir: #050505;
     --ivory: #F5F0E8;
-    --gold: #C9A84C;
-    --gold-light: #E8D49A;
-    --slate: #1C1C1C;
+    --gold: #D4AF37;
+    --gold-light: #F3E5AB;
+    --gold-glow: rgba(212, 175, 55, 0.3);
+    --slate: #111111;
     --stone: #8A8278;
     --stone-light: #B8B2AA;
-    --surface: #141414;
-    --surface2: #1A1A1A;
+    --surface: rgba(20, 20, 20, 0.6); 
+    --surface2: rgba(30, 30, 30, 0.8);
+    --surface-border: rgba(212, 175, 55, 0.15);
+    
+    /* 🚀 Криві анімації для 60fps */
+    --transition-smooth: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    --transition-bounce: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.5s ease, background 0.3s ease;
   }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  * { margin: 0; padding: 0; box-sizing: border-box; scroll-behavior: smooth; }
   
   #gastro-app {
     background: var(--noir);
@@ -29,1289 +37,531 @@
     min-height: 100vh;
     font-size: 14px;
     line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
-
+/* 💎 ПРЕМІАЛЬНИЙ КІНЕМАТОГРАФІЧНИЙ СКРОЛБАР ДЛЯ ВСЬОГО САЙТУ */
+  ::-webkit-scrollbar {
+    width: 4px; /* Робимо його дуже тоненьким та витонченим */
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: rgba(10, 10, 10, 0.2); /* Майже прозорий темний фон */
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(201, 168, 76, 0.3); /* Напівпрозоре золото в стані спокою */
+    border-radius: 10px;
+    transition: background 0.3s ease;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--gold); /* Яскраве золото при наведенні курсору */
+    box-shadow: 0 0 10px var(--gold);
+  }
+  
+  /* Підтримка для браузера Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(201, 168, 76, 0.4) transparent;
+  }
+  /* 🧊 Ефект матового скла для навігації */
   .g-nav {
     position: sticky;
     top: 0;
-    z-index: 100;
-    background: rgba(10,10,10,0.96);
-    border-bottom: 0.5px solid rgba(201,168,76,0.25);
+    z-index: 1000;
+    background: rgba(5, 5, 5, 0.75);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--surface-border);
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0 48px;
     height: 64px;
-    backdrop-filter: blur(8px);
+    transition: var(--transition-smooth);
   }
-  .g-logo {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 20px;
-    font-weight: 400;
-    letter-spacing: 0.08em;
-    color: var(--ivory);
-  }
+  .g-logo { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 400; letter-spacing: 0.08em; color: var(--ivory); }
   .g-logo span { color: var(--gold); font-style: italic; }
-  .g-nav-links {
-    display: flex;
-    gap: 36px;
-    list-style: none;
-  }
+  
+  .g-nav-links { display: flex; gap: 36px; list-style: none; }
   .g-nav-links li a {
-    font-size: 11px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--stone-light);
-    text-decoration: none;
-    transition: color 0.2s;
-    cursor: pointer;
+    font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--stone-light);
+    text-decoration: none; transition: var(--transition-smooth); cursor: pointer; font-weight: 500;
   }
   .g-nav-links li a:hover, .g-nav-links li a.active { color: var(--gold); }
-  .g-nav-cta {
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--noir);
-    background: var(--gold);
-    border: none;
-    padding: 10px 24px;
-    cursor: pointer;
-    font-family: 'Inter', sans-serif;
-    transition: background 0.2s;
+  
+  /* 🔘 Преміальні кнопки з 3D ефектом */
+  .g-nav-cta, .btn-primary {
+    background: linear-gradient(135deg, var(--gold), #b5952f);
+    color: var(--noir); border: none; padding: 12px 28px;
+    font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+    cursor: pointer; font-family: 'Inter', sans-serif; font-weight: 600;
+    border-radius: 8px; box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);
+    transition: var(--transition-bounce); will-change: transform, box-shadow;
   }
-  .g-nav-cta:hover { background: var(--gold-light); }
-/* Стиль для бургер-кнопки (на ПК вона схована) */
-  .mobile-menu-btn {
-    display: none;
-    background: transparent;
-    border: none;
-    color: var(--gold);
-    font-size: 28px;
-    cursor: pointer;
+  .g-nav-cta:hover, .btn-primary:hover { 
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 10px 25px var(--gold-glow);
   }
+
+  .btn-outline {
+    background: transparent; color: var(--ivory);
+    border: 1px solid var(--surface-border); padding: 14px 36px;
+    font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+    cursor: pointer; font-family: 'Inter', sans-serif; border-radius: 8px;
+    transition: var(--transition-bounce); will-change: transform;
+  }
+  .btn-outline:hover { border-color: var(--gold); background: rgba(255,255,255,0.03); transform: translateY(-2px); }
+
+  /* ВИПРАВЛЕННЯ: Ховаємо мобільні елементи на ПК */
+  .mobile-menu-btn { display: none; background: transparent; border: none; color: var(--gold); font-size: 28px; cursor: pointer; }
+  .mobile-only-btn { display: none; } 
+  
   .page { display: none; }
-  .page.active { display: block; }
+  .page.active { display: block; animation: fadeIn 0.5s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
   /* HERO */
-  .hero {
-    position: relative;
-    min-height: 92vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 0 48px;
-    overflow: hidden;
-  }
-  .hero-bg-text {
-    position: absolute;
-    top: 50%;
-    right: -20px;
-    transform: translateY(-50%);
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 240px;
-    font-weight: 300;
-    color: rgba(201,168,76,0.04);
-    letter-spacing: -0.05em;
-    pointer-events: none;
-    white-space: nowrap;
-    line-height: 1;
-  }
-  .hero-eyebrow {
-    font-size: 10px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--gold);
-    margin-bottom: 32px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-  .hero-eyebrow::before {
-    content: '';
-    display: block;
-    width: 40px;
-    height: 0.5px;
-    background: var(--gold);
-  }
-  .hero-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(52px, 7vw, 96px);
-    font-weight: 300;
-    line-height: 1.0;
-    letter-spacing: -0.02em;
-    margin-bottom: 8px;
-    max-width: 800px;
-  }
-  .hero-title em {
-    font-style: italic;
-    color: var(--gold);
-  }
-  .hero-divider {
-    width: 100%;
-    height: 0.5px;
-    background: linear-gradient(to right, var(--gold) 0%, rgba(201,168,76,0.1) 60%, transparent 100%);
-    margin: 32px 0;
-    max-width: 900px;
-  }
-  .hero-subtitle {
-    font-size: 16px;
-    color: var(--stone-light);
-    max-width: 520px;
-    line-height: 1.75;
-    font-weight: 300;
-    margin-bottom: 48px;
-  }
-  .hero-actions {
-    display: flex;
-    align-items: center;
-    gap: 32px;
-  }
-  .btn-primary {
-    background: var(--gold);
-    color: var(--noir);
-    border: none;
-    padding: 14px 36px;
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    cursor: pointer;
-    font-family: 'Inter', sans-serif;
-    transition: background 0.2s;
-  }
-  .btn-primary:hover { background: var(--gold-light); }
-  .btn-outline {
-    background: transparent;
-    color: var(--stone-light);
-    border: 0.5px solid rgba(138,130,120,0.4);
-    padding: 14px 36px;
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    cursor: pointer;
-    font-family: 'Inter', sans-serif;
-    transition: all 0.2s;
-  }
-  .btn-outline:hover { color: var(--ivory); border-color: var(--ivory); }
-  .hero-stats {
-    position: absolute;
-    bottom: 56px;
-    left: 48px;
-    right: 48px;
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0;
-    border-top: 0.5px solid rgba(201,168,76,0.2);
-    padding-top: 28px;
-  }
-  .hero-stat {
-    padding-right: 32px;
-    border-right: 0.5px solid rgba(138,130,120,0.15);
-  }
+  .hero { position: relative; min-height: 92vh; display: flex; flex-direction: column; justify-content: center; padding: 0 48px; overflow: hidden; }
+  .hero-bg-text { position: absolute; top: 50%; right: -20px; transform: translateY(-50%); font-family: 'Cormorant Garamond', serif; font-size: 240px; font-weight: 300; color: rgba(201,168,76,0.04); letter-spacing: -0.05em; pointer-events: none; white-space: nowrap; line-height: 1; }
+  .hero-eyebrow { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 32px; display: flex; align-items: center; gap: 16px; }
+  .hero-eyebrow::before { content: ''; display: block; width: 40px; height: 1px; background: var(--gold); }
+  .hero-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(52px, 7vw, 96px); font-weight: 300; line-height: 1.0; letter-spacing: -0.02em; margin-bottom: 8px; max-width: 800px; }
+  .hero-title em { font-style: italic; color: var(--gold); }
+  .hero-divider { width: 100%; height: 1px; background: linear-gradient(to right, var(--gold) 0%, rgba(201,168,76,0.1) 60%, transparent 100%); margin: 32px 0; max-width: 900px; }
+  .hero-subtitle { font-size: 16px; color: var(--stone-light); max-width: 520px; line-height: 1.75; font-weight: 300; margin-bottom: 48px; }
+  .hero-actions { display: flex; align-items: center; gap: 32px; }
+  
+  .hero-stats { position: absolute; bottom: 56px; left: 48px; right: 48px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border-top: 1px solid var(--surface-border); padding-top: 28px; }
+  .hero-stat { padding-right: 32px; border-right: 1px solid var(--surface-border); }
   .hero-stat:last-child { border-right: none; }
-  .hero-stat-num {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 36px;
-    font-weight: 300;
-    color: var(--ivory);
-    line-height: 1;
-  }
+  .hero-stat-num { font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 300; color: var(--ivory); line-height: 1; }
   .hero-stat-num span { color: var(--gold); font-size: 20px; }
-  .hero-stat-label {
-    font-size: 10px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--stone);
-    margin-top: 6px;
-  }
+  .hero-stat-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--stone); margin-top: 6px; }
 
   /* SECTIONS */
-  .section {
-    padding: 100px 48px;
-    border-top: 0.5px solid rgba(138,130,120,0.12);
-  }
-  .section-header {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    margin-bottom: 64px;
-  }
-  .section-eyebrow {
-    font-size: 10px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--gold);
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .section-eyebrow::before {
-    content: '';
-    display: block;
-    width: 24px;
-    height: 0.5px;
-    background: var(--gold);
-  }
-  .section-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 48px;
-    font-weight: 300;
-    line-height: 1.1;
-    letter-spacing: -0.01em;
-  }
+  .section { padding: 100px 48px; border-top: 1px solid var(--surface-border); }
+  .section-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 64px; }
+  .section-eyebrow { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 12px; display: flex; align-items: center; gap: 12px; }
+  .section-eyebrow::before { content: ''; display: block; width: 24px; height: 1px; background: var(--gold); }
+  .section-title { font-family: 'Cormorant Garamond', serif; font-size: 48px; font-weight: 300; line-height: 1.1; letter-spacing: -0.01em; }
   .section-title em { font-style: italic; color: var(--gold); }
-  .section-link {
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--gold);
-    text-decoration: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    white-space: nowrap;
-    padding-bottom: 4px;
-    border-bottom: 0.5px solid rgba(201,168,76,0.3);
-    transition: gap 0.2s;
-  }
+  .section-link { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); text-decoration: none; cursor: pointer; display: flex; align-items: center; gap: 8px; padding-bottom: 4px; border-bottom: 1px solid rgba(201,168,76,0.3); transition: var(--transition-smooth); }
   .section-link:hover { gap: 14px; }
 
-  /* LOCATION CARDS */
-  .locations-grid {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
-    grid-template-rows: auto auto;
-    gap: 1px;
-    background: rgba(138,130,120,0.15);
+  /* 🎴 УНІВЕРСАЛЬНИЙ GLASSMORPHISM ДЛЯ СІТОК */
+  .locations-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; grid-template-rows: auto auto; gap: 24px; }
+  .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .products-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; padding: 0 48px 100px; }
+  .about-pillars { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; padding: 0 48px 100px; }
+
+  /* КАРТКИ */
+  .loc-card, .feat-card, .prod-card, .pillar, .msg-card {
+    background: var(--surface); border: 1px solid var(--surface-border); border-radius: 16px;
+    padding: 32px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    transition: var(--transition-smooth); will-change: transform, box-shadow, border-color; cursor: pointer;
   }
-  .loc-card {
-    background: var(--noir);
-    padding: 36px 32px;
-    position: relative;
-    overflow: hidden;
-    cursor: pointer;
-    transition: background 0.3s;
+  .loc-card:hover, .feat-card:hover, .prod-card:hover, .pillar:hover { 
+    transform: translateY(-8px); border-color: rgba(212, 175, 55, 0.5);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 20px rgba(212, 175, 55, 0.1); background: var(--surface2);
   }
-  .loc-card:hover { background: var(--surface); }
+
+  /* Специфічне для карток локацій */
   .loc-card.featured { grid-row: 1 / 3; }
-  .loc-card-num {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 64px;
-    font-weight: 300;
-    color: rgba(201,168,76,0.08);
-    position: absolute;
-    top: 16px;
-    right: 24px;
-    line-height: 1;
-  }
-  .loc-card-badge {
-    display: inline-block;
-    font-size: 9px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--gold);
-    border: 0.5px solid rgba(201,168,76,0.35);
-    padding: 4px 12px;
-    margin-bottom: 24px;
-  }
-  .loc-card-name {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 28px;
-    font-weight: 400;
-    line-height: 1.15;
-    margin-bottom: 12px;
-  }
+  .loc-card-num { font-family: 'Cormorant Garamond', serif; font-size: 64px; font-weight: 300; color: rgba(201,168,76,0.08); position: absolute; top: 16px; right: 24px; line-height: 1; }
+  .loc-card-badge { display: inline-block; font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); border: 1px solid var(--surface-border); padding: 4px 12px; margin-bottom: 24px; border-radius: 6px; }
+  .loc-card-name { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 400; line-height: 1.15; margin-bottom: 12px; }
   .loc-card.featured .loc-card-name { font-size: 44px; margin-bottom: 20px; }
-  .loc-card-desc {
-    font-size: 13px;
-    color: var(--stone-light);
-    line-height: 1.7;
-    max-width: 380px;
-    margin-bottom: 28px;
-    font-weight: 300;
-  }
-  .loc-card-meta {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-  }
-  .loc-meta-item {
-    font-size: 10px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--stone);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
+  .loc-card-desc { font-size: 13px; color: var(--stone-light); line-height: 1.7; max-width: 380px; margin-bottom: 28px; font-weight: 300; }
+  .loc-card-meta { display: flex; gap: 20px; flex-wrap: wrap; }
+  .loc-meta-item { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--stone); display: flex; align-items: center; gap: 6px; }
   .loc-meta-item i { color: var(--gold); font-size: 12px; }
-  .loc-score {
-    display: flex;
-    align-items: baseline;
-    gap: 4px;
-    margin-top: auto;
-    margin-bottom: 12px;
-  }
-  .loc-score-num {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 48px;
-    font-weight: 300;
-    color: var(--ivory);
-    line-height: 1;
-  }
+  .loc-score { display: flex; align-items: baseline; gap: 4px; margin-top: auto; margin-bottom: 12px; }
+  .loc-score-num { font-family: 'Cormorant Garamond', serif; font-size: 48px; font-weight: 300; color: var(--ivory); line-height: 1; }
   .loc-score-label { font-size: 10px; color: var(--stone); letter-spacing: 0.1em; text-transform: uppercase; }
 
-  /* FEATURES GRID */
-  .features-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1px;
-    background: rgba(138,130,120,0.12);
-  }
-  .feat-card {
-    background: var(--noir);
-    padding: 48px 36px;
-    transition: background 0.3s;
-  }
-  .feat-card:hover { background: var(--surface); }
-  .feat-icon {
-    width: 40px;
-    height: 40px;
-    border: 0.5px solid rgba(201,168,76,0.3);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 28px;
-    color: var(--gold);
-    font-size: 18px;
-  }
-  .feat-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 22px;
-    font-weight: 400;
-    margin-bottom: 14px;
-    line-height: 1.3;
-  }
-  .feat-desc {
-    font-size: 13px;
-    color: var(--stone-light);
-    line-height: 1.75;
-    font-weight: 300;
-  }
+  /* Специфічне для карток "Про систему" (Pillars) */
+  .pillar-num { font-family: 'Cormorant Garamond', serif; font-size: 48px; font-weight: 300; color: rgba(201,168,76,0.2); line-height: 1; margin-bottom: 20px; }
+  .pillar-title { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 400; margin-bottom: 12px; line-height: 1.3; }
+  .pillar-desc { font-size: 12px; color: var(--stone-light); line-height: 1.75; font-weight: 300; }
+
+  /* Специфічне для фіч */
+  .feat-icon { width: 48px; height: 48px; border-radius: 12px; background: rgba(212, 175, 55, 0.1); display: flex; align-items: center; justify-content: center; margin-bottom: 24px; color: var(--gold); font-size: 24px; }
+  .feat-title { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 400; margin-bottom: 14px; line-height: 1.3; }
+  .feat-desc { font-size: 13px; color: var(--stone-light); line-height: 1.75; font-weight: 300; }
+
+  /* Специфічне для товарів */
+  .prod-card { display: flex; flex-direction: column; padding: 24px; }
+  .prod-producer { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--stone); margin-bottom: 8px; }
+  .prod-title { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 400; line-height: 1.2; margin-bottom: 16px; color: var(--gold-light); }
+  .prod-desc { font-size: 13px; color: var(--stone-light); line-height: 1.7; margin-bottom: 32px; font-weight: 300; flex-grow: 1; }
+  .prod-footer { display: flex; align-items: flex-end; justify-content: space-between; border-top: 1px solid var(--surface-border); padding-top: 20px; }
+  .prod-price-val { font-family: 'Cormorant Garamond', serif; font-size: 32px; color: var(--gold); line-height: 1; }
+  .prod-price-val span { font-size: 16px; font-family: 'Inter', sans-serif;}
+  .prod-weight { font-size: 10px; color: var(--stone); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px;}
+  .prod-img-wrap { width: 100%; height: 240px; margin-bottom: 24px; overflow: hidden; position: relative; border-radius: 12px; }
+  .prod-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+  .prod-card:hover .prod-img { transform: scale(1.08); }
+  .prod-category { position: absolute; top: 16px; right: 16px; background: rgba(10,10,10,0.8); backdrop-filter: blur(8px); color: var(--gold); font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; padding: 6px 12px; border: 1px solid var(--surface-border); border-radius: 6px; }
 
   /* LOCATIONS PAGE */
-  .page-hero {
-    padding: 80px 48px 64px;
-    border-bottom: 0.5px solid rgba(138,130,120,0.12);
-  }
-  .page-hero-label {
-    font-size: 10px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--stone);
-    margin-bottom: 24px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .page-hero-label::before {
-    content: '';
-    display: block;
-    width: 24px;
-    height: 0.5px;
-    background: var(--stone);
-  }
-  .page-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 72px;
-    font-weight: 300;
-    line-height: 1.0;
-    letter-spacing: -0.02em;
-  }
+  .page-hero { padding: 80px 48px 64px; border-bottom: 1px solid var(--surface-border); }
+  .page-hero-label { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+  .page-hero-label::before { content: ''; display: block; width: 24px; height: 1px; background: var(--gold); }
+  .page-title { font-family: 'Cormorant Garamond', serif; font-size: 72px; font-weight: 300; line-height: 1.0; letter-spacing: -0.02em; }
   .page-title em { font-style: italic; color: var(--gold); }
-  .page-subtitle {
-    font-size: 15px;
-    color: var(--stone-light);
-    max-width: 480px;
-    line-height: 1.75;
-    font-weight: 300;
-    margin-top: 20px;
-  }
+  .page-subtitle { font-size: 15px; color: var(--stone-light); max-width: 480px; line-height: 1.75; font-weight: 300; margin-top: 20px; }
 
-  .filters-bar {
-    padding: 28px 48px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    border-bottom: 0.5px solid rgba(138,130,120,0.12);
-    flex-wrap: wrap;
-  }
-  .filter-btn {
-    font-size: 10px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--stone);
-    background: transparent;
-    border: 0.5px solid rgba(138,130,120,0.25);
-    padding: 8px 20px;
-    cursor: pointer;
-    font-family: 'Inter', sans-serif;
-    transition: all 0.2s;
-  }
-  .filter-btn:hover, .filter-btn.active {
-    color: var(--ivory);
-    border-color: rgba(245,240,232,0.4);
-  }
-  .filter-btn.active { color: var(--gold); border-color: rgba(201,168,76,0.4); }
+  .filters-bar { padding: 28px 48px; display: flex; align-items: center; gap: 16px; border-bottom: 1px solid var(--surface-border); flex-wrap: wrap; }
+  .filter-btn { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--stone); background: transparent; border: 1px solid var(--surface-border); padding: 10px 24px; cursor: pointer; font-family: 'Inter', sans-serif; transition: var(--transition-smooth); border-radius: 8px;}
+  .filter-btn:hover, .filter-btn.active { color: var(--noir); background: var(--gold); border-color: var(--gold); }
 
-  .loc-list {
-    padding: 0 48px;
-  }
-  .loc-row {
-    display: grid;
-    grid-template-columns: 60px 2fr 1fr 1fr 80px 100px;
-    align-items: center;
-    gap: 24px;
-    padding: 28px 0;
-    border-bottom: 0.5px solid rgba(138,130,120,0.1);
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-  .loc-row:hover { background: rgba(201,168,76,0.03); margin: 0 -48px; padding: 28px 48px; }
-  .loc-rank {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 20px;
-    font-weight: 300;
-    color: var(--stone);
-  }
-  .loc-row-name {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 22px;
-    font-weight: 400;
-  }
-  .loc-row-sub {
-    font-size: 11px;
-    color: var(--stone);
-    letter-spacing: 0.05em;
-    margin-top: 3px;
-    text-transform: uppercase;
-  }
-  .loc-row-tag {
-    font-size: 9px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    border: 0.5px solid rgba(201,168,76,0.3);
-    color: var(--gold);
-    padding: 4px 10px;
-    display: inline-block;
-  }
-  .loc-row-score-bar {
-    height: 2px;
-    background: rgba(138,130,120,0.2);
-    position: relative;
-    overflow: hidden;
-  }
-  .loc-row-score-fill {
-    position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
-    background: var(--gold);
-  }
-  .loc-row-score-val {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 20px;
-    font-weight: 300;
-    text-align: right;
-  }
+  .loc-list { padding: 0 48px; }
+  .loc-row { display: grid; grid-template-columns: 60px 2fr 1fr 1fr 80px 100px; align-items: center; gap: 24px; padding: 28px 24px; border-bottom: 1px solid rgba(138,130,120,0.1); cursor: pointer; transition: var(--transition-smooth); border-radius: 12px; margin: 8px 0;}
+  .loc-row:hover { background: var(--surface); transform: scale(1.01); box-shadow: 0 10px 20px rgba(0,0,0,0.3); border-color: transparent;}
+  .loc-rank { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 300; color: var(--stone); }
+  .loc-row-name { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 400; }
+  .loc-row-sub { font-size: 11px; color: var(--stone); letter-spacing: 0.05em; margin-top: 3px; text-transform: uppercase; }
+  .loc-row-tag { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; border: 1px solid var(--surface-border); color: var(--gold); padding: 4px 10px; display: inline-block; border-radius: 6px;}
+  .loc-row-score-bar { height: 4px; background: rgba(138,130,120,0.2); position: relative; overflow: hidden; border-radius: 2px;}
+  .loc-row-score-fill { position: absolute; left: 0; top: 0; height: 100%; background: var(--gold); border-radius: 2px;}
+  .loc-row-score-val { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 300; text-align: right; color: var(--gold);}
 
   /* MAP PAGE */
-  .map-container {
-    padding: 48px;
-    min-height: 70vh;
-  }
-  .map-layout {
-    display: grid;
-    grid-template-columns: 300px 1fr;
-    gap: 1px;
-    background: rgba(138,130,120,0.12);
-    min-height: 600px;
-  }
-  .map-sidebar {
-    background: var(--surface);
-    padding: 32px 28px;
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-  }
-  .map-search {
-    background: rgba(255,255,255,0.04);
-    border: 0.5px solid rgba(138,130,120,0.25);
-    color: var(--ivory);
-    padding: 12px 16px;
-    font-size: 13px;
-    font-family: 'Inter', sans-serif;
-    width: 100%;
-    margin-bottom: 24px;
-    outline: none;
-  }
-  .map-search::placeholder { color: var(--stone); }
-  .map-item {
-    padding: 20px 0;
-    border-bottom: 0.5px solid rgba(138,130,120,0.1);
-    cursor: pointer;
-    transition: padding-left 0.2s;
-  }
-  .map-item:hover { padding-left: 8px; }
-  .map-item.selected { padding-left: 8px; border-left: 2px solid var(--gold); }
-  .map-item-name {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 17px;
-    font-weight: 400;
-  }
-  .map-item-info {
-    font-size: 10px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--stone);
-    margin-top: 4px;
-    display: flex;
-    gap: 12px;
-  }
-  .map-viz {
-    background: var(--noir);
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-  }
-  .map-svg-wrap {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 32px;
-  }
-  .map-pin {
-    cursor: pointer;
-    transition: transform 0.2s ease;
-    transform-box: fill-box;
-    transform-origin: center center;
-  }
-  .map-pin:hover { 
-    transform: scale(1.4); 
-  }
-  .map-tooltip {
-    position: absolute;
-    background: var(--surface2);
-    border: 0.5px solid rgba(201,168,76,0.4);
-    padding: 16px 20px;
-    pointer-events: none;
-    min-width: 180px;
-    display: none;
-  }
-  .map-tooltip.visible { display: block; }
-  .map-tooltip-name {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 18px;
-    font-weight: 400;
-    margin-bottom: 6px;
-  }
-  .map-tooltip-info {
-    font-size: 11px;
-    color: var(--stone-light);
-  }
+  .map-container { padding: 48px; min-height: 70vh; }
+  .map-layout { display: grid; grid-template-columns: 320px 1fr; gap: 24px; min-height: 600px; }
+  .map-sidebar { background: var(--surface); border-radius: 16px; border: 1px solid var(--surface-border); padding: 24px; display: flex; flex-direction: column; backdrop-filter: blur(10px); }
+  .map-viz { border-radius: 16px; overflow: hidden; border: 1px solid var(--surface-border); }
+  .map-item { padding: 16px; border-radius: 8px; border-bottom: none; cursor: pointer; transition: var(--transition-smooth); margin-bottom: 8px; border: 1px solid transparent;}
+  .map-item:hover { background: rgba(255,255,255,0.05); border-color: var(--surface-border); }
+  .map-item-name { font-family: 'Cormorant Garamond', serif; font-size: 17px; font-weight: 400; color: var(--ivory); }
+  .map-item-info { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--stone); margin-top: 4px; display: flex; gap: 12px; }
 
-  /* ABOUT PAGE */
-  .about-intro {
-    padding: 100px 48px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 80px;
-    align-items: center;
-  }
-  .about-big-text {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 56px;
-    font-weight: 300;
-    line-height: 1.1;
-    letter-spacing: -0.02em;
-  }
+  /* ABOUT PAGE & TIMELINE */
+  .about-intro { padding: 100px 48px; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+  .about-big-text { font-family: 'Cormorant Garamond', serif; font-size: 56px; font-weight: 300; line-height: 1.1; letter-spacing: -0.02em; }
   .about-big-text em { font-style: italic; color: var(--gold); }
-  .about-body {
-    font-size: 15px;
-    color: var(--stone-light);
-    line-height: 1.85;
-    font-weight: 300;
-  }
+  .about-body { font-size: 15px; color: var(--stone-light); line-height: 1.85; font-weight: 300; }
   .about-body p { margin-bottom: 20px; }
-  .about-timeline {
-    padding: 0 48px 100px;
-  }
-  .timeline-item {
-    display: grid;
-    grid-template-columns: 120px 1px 1fr;
-    gap: 0 36px;
-    padding: 40px 0;
-    border-top: 0.5px solid rgba(138,130,120,0.12);
-  }
-  .timeline-year {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 32px;
-    font-weight: 300;
-    color: var(--stone);
-    line-height: 1;
-    padding-top: 4px;
-    text-align: right;
-  }
-  .timeline-line {
-    background: rgba(138,130,120,0.2);
-    position: relative;
-  }
-  .timeline-line::before {
-    content: '';
-    position: absolute;
-    top: 8px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 6px;
-    height: 6px;
-    background: var(--gold);
-  }
-  .timeline-content {}
-  .timeline-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 22px;
-    font-weight: 400;
-    margin-bottom: 10px;
-  }
-  .timeline-desc {
-    font-size: 13px;
-    color: var(--stone-light);
-    line-height: 1.75;
-    font-weight: 300;
-  }
+  .about-timeline { padding: 0 48px 100px; }
+  .timeline-item { display: grid; grid-template-columns: 120px 1px 1fr; gap: 0 36px; padding: 40px 0; border-top: 1px solid var(--surface-border); }
+  .timeline-year { font-family: 'Cormorant Garamond', serif; font-size: 32px; font-weight: 300; color: var(--stone); line-height: 1; padding-top: 4px; text-align: right; }
+  .timeline-line { background: rgba(138,130,120,0.2); position: relative; }
+  .timeline-line::before { content: ''; position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 6px; height: 6px; background: var(--gold); border-radius: 50%; }
+  .timeline-title { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 400; margin-bottom: 10px; }
+  .timeline-desc { font-size: 13px; color: var(--stone-light); line-height: 1.75; font-weight: 300; }
 
-  /* CONTACT & ADMIN PAGE */
-  .contact-layout {
-    padding: 80px 48px;
-    display: grid;
-    grid-template-columns: 1fr 1.4fr;
-    gap: 80px;
-    align-items: start;
-  }
-  .contact-info-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 48px;
-    font-weight: 300;
-    line-height: 1.15;
-    letter-spacing: -0.01em;
-    margin-bottom: 28px;
-  }
+  /* CONTACT & ADMIN FORMS */
+  .contact-layout { padding: 80px 48px; display: grid; grid-template-columns: 1fr 1.4fr; gap: 80px; align-items: start; }
+  .contact-info-title { font-family: 'Cormorant Garamond', serif; font-size: 48px; font-weight: 300; line-height: 1.15; letter-spacing: -0.01em; margin-bottom: 28px; }
   .contact-info-title em { font-style: italic; color: var(--gold); }
-  .contact-info-body {
-    font-size: 14px;
-    color: var(--stone-light);
-    line-height: 1.8;
-    font-weight: 300;
-    margin-bottom: 48px;
-  }
-  .contact-detail {
-    padding: 20px 0;
-    border-top: 0.5px solid rgba(138,130,120,0.12);
-  }
-  .contact-detail:last-child { border-bottom: 0.5px solid rgba(138,130,120,0.12); }
-  .contact-detail-label {
-    font-size: 9px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--gold);
-    margin-bottom: 6px;
-  }
-  .contact-detail-val {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 20px;
-    font-weight: 400;
-  }
-  .contact-form {}
+  .contact-info-body { font-size: 14px; color: var(--stone-light); line-height: 1.8; font-weight: 300; margin-bottom: 48px; }
+  .contact-detail { padding: 20px 0; border-top: 1px solid var(--surface-border); }
+  .contact-detail:last-child { border-bottom: 1px solid var(--surface-border); }
+  .contact-detail-label { font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
+  .contact-detail-val { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 400; }
+  
   .form-row { margin-bottom: 24px; }
-  .form-label {
-    display: block;
-    font-size: 9px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--stone);
-    margin-bottom: 10px;
+  .form-label { display: block; font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--stone); margin-bottom: 10px; }
+  input, select, textarea, .map-search {
+    width: 100%; background: rgba(20, 20, 20, 0.6); border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--ivory); padding: 14px 18px; border-radius: 8px; font-family: 'Inter', sans-serif;
+    font-size: 14px; transition: var(--transition-smooth); backdrop-filter: blur(4px);
   }
-  .form-input {
-    width: 100%;
-    background: rgba(255,255,255,0.03);
-    border: 0.5px solid rgba(138,130,120,0.25);
-    color: var(--ivory);
-    padding: 14px 18px;
-    font-size: 14px;
-    font-family: 'Inter', sans-serif;
-    outline: none;
-    transition: border-color 0.2s;
+  input:focus, select:focus, textarea:focus, .map-search:focus {
+    outline: none; border-color: var(--gold); background: rgba(30, 30, 30, 0.8);
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
   }
-  .form-input:focus { border-color: rgba(201,168,76,0.5); }
-  .form-input::placeholder { color: var(--stone); }
-  .form-select {
-    width: 100%;
-    background: rgba(255,255,255,0.03);
-    border: 0.5px solid rgba(138,130,120,0.25);
-    color: var(--ivory);
-    padding: 14px 18px;
-    font-size: 14px;
-    font-family: 'Inter', sans-serif;
-    outline: none;
-    appearance: none;
-    cursor: pointer;
-  }
-  .form-select option { background: var(--slate); }
   textarea.form-input { resize: none; min-height: 140px; line-height: 1.6; }
 
-  /* FOOTER */
-  .g-footer {
-    border-top: 0.5px solid rgba(201,168,76,0.2);
-    padding: 56px 48px 40px;
-    display: grid;
-    grid-template-columns: 1.5fr 1fr 1fr 1fr;
-    gap: 40px;
-  }
-  .footer-logo {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 22px;
-    font-weight: 400;
-    letter-spacing: 0.06em;
-    margin-bottom: 16px;
-  }
-  .footer-logo span { color: var(--gold); font-style: italic; }
-  .footer-desc {
-    font-size: 12px;
-    color: var(--stone);
-    line-height: 1.75;
-    font-weight: 300;
-    max-width: 260px;
-  }
-  .footer-col-title {
-    font-size: 9px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--stone);
-    margin-bottom: 20px;
-  }
-  .footer-links { list-style: none; }
-  .footer-links li {
-    margin-bottom: 12px;
-  }
-  .footer-links li a {
-    font-size: 13px;
-    color: var(--stone-light);
-    text-decoration: none;
-    cursor: pointer;
-    font-weight: 300;
-    transition: color 0.2s;
-  }
-  .footer-links li a:hover { color: var(--gold); }
-  .footer-bottom {
-    border-top: 0.5px solid rgba(138,130,120,0.1);
-    padding: 24px 48px 32px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .footer-copy {
-    font-size: 11px;
-    color: var(--stone);
-    font-weight: 300;
-  }
-  .footer-tagline {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 13px;
-    color: var(--stone);
-    font-style: italic;
-  }
-
-  .gold-line {
-    width: 100%;
-    height: 0.5px;
-    background: linear-gradient(to right, transparent, var(--gold), transparent);
-    margin: 0;
-  }
-  
-  .tag-pill {
-    display: inline-block;
-    font-size: 9px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    padding: 4px 12px;
-    border: 0.5px solid rgba(201,168,76,0.3);
-    color: var(--gold);
-  }
-
-  .about-pillars {
-    padding: 0 48px 100px;
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1px;
-    background: rgba(138,130,120,0.12);
-  }
-  .pillar {
-    background: var(--noir);
-    padding: 44px 32px;
-    transition: background 0.3s;
-  }
-  .pillar:hover { background: var(--surface); }
-  .pillar-num {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 48px;
-    font-weight: 300;
-    color: rgba(201,168,76,0.2);
-    line-height: 1;
-    margin-bottom: 20px;
-  }
-  .pillar-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 20px;
-    font-weight: 400;
-    margin-bottom: 12px;
-    line-height: 1.3;
-  }
-  .pillar-desc {
-    font-size: 12px;
-    color: var(--stone-light);
-    line-height: 1.75;
-    font-weight: 300;
-  }
-  
-  /* PRODUCTS PAGE */
-  .products-grid {
-    padding: 0 48px 100px;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1px;
-    background: rgba(138,130,120,0.12);
-  }
-  .prod-card {
-    background: var(--noir);
-    padding: 40px 32px;
-    transition: background 0.3s;
-    display: flex;
-    flex-direction: column;
-  }
-  .prod-card:hover { background: var(--surface); }
-  .prod-producer {
-    font-size: 9px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--stone);
-    margin-bottom: 8px;
-  }
-  .prod-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 26px;
-    font-weight: 400;
-    line-height: 1.2;
-    margin-bottom: 16px;
-  }
-  .prod-desc {
-    font-size: 13px;
-    color: var(--stone-light);
-    line-height: 1.7;
-    margin-bottom: 32px;
-    font-weight: 300;
-    flex-grow: 1;
-  }
-  .prod-footer {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    border-top: 0.5px solid rgba(201,168,76,0.2);
-    padding-top: 20px;
-  }
-  .prod-price-val {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 32px;
-    color: var(--ivory);
-    line-height: 1;
-  }
-  .prod-price-val span { font-size: 16px; color: var(--gold); }
-  .prod-weight {
-    font-size: 10px;
-    color: var(--stone);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-  }
-  .prod-img-wrap {
-    width: 100%;
-    height: 240px;
-    margin-bottom: 24px;
-    overflow: hidden;
-    position: relative;
-  }
-  .prod-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.4s ease;
-  }
-  .prod-card:hover .prod-img {
-    transform: scale(1.05);
-  }
-  .prod-category {
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    background: rgba(10,10,10,0.8);
-    backdrop-filter: blur(4px);
-    color: var(--ivory);
-    font-size: 9px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    padding: 6px 12px;
-    border: 0.5px solid rgba(201,168,76,0.3);
-  }
   /* ADMIN DASHBOARD */
-  .admin-dashboard {
-    display: grid;
-    grid-template-columns: 240px 1fr;
-    gap: 40px;
-    padding: 0 48px 100px;
-    align-items: start;
-  }
-  .admin-sidebar {
-    background: var(--surface);
-    border: 0.5px solid rgba(138,130,120,0.15);
-    display: flex;
-    flex-direction: column;
-  }
-  .admin-tab-btn {
-    background: transparent;
-    border: none;
-    border-bottom: 0.5px solid rgba(138,130,120,0.1);
-    color: var(--stone-light);
-    padding: 20px 24px;
-    text-align: left;
-    font-family: 'Inter', sans-serif;
-    font-size: 11px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all 0.3s;
-  }
-  .admin-tab-btn:hover { background: rgba(255,255,255,0.02); }
-  .admin-tab-btn.active {
-    background: rgba(201,168,76,0.08);
-    color: var(--gold);
-    border-left: 2px solid var(--gold);
-  }
-  .admin-panel-content {
-    background: var(--surface);
-    border: 0.5px solid rgba(138,130,120,0.15);
-    padding: 40px;
-  }
+  .admin-dashboard { display: grid; grid-template-columns: 240px 1fr; gap: 40px; padding: 0 48px 100px; align-items: start; }
+  .admin-sidebar { background: var(--surface); border-radius: 16px; border: 1px solid var(--surface-border); padding: 16px 0; overflow: hidden; backdrop-filter: blur(10px); display: flex; flex-direction: column; }
+  .admin-tab-btn { background: transparent; border: none; color: var(--stone-light); padding: 16px 24px; text-align: left; font-family: 'Inter', sans-serif; font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; transition: var(--transition-smooth); border-left: 3px solid transparent; }
+  .admin-tab-btn:hover { background: rgba(255,255,255,0.05); color: var(--ivory); }
+  .admin-tab-btn.active { background: rgba(212, 175, 55, 0.1); color: var(--gold); border-left: 3px solid var(--gold); }
+  .admin-panel-content { background: transparent; border: none; padding: 0; }
   .admin-tab-pane { display: none; }
   .admin-tab-pane.active { display: block; }
-  
-  /* Messages List */
-  .msg-card {
-    background: var(--noir);
-    border: 0.5px solid rgba(138,130,120,0.2);
-    padding: 24px;
-    margin-bottom: 16px;
-  }
-  .msg-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 16px;
-    padding-bottom: 12px;
-    border-bottom: 0.5px solid rgba(138,130,120,0.1);
-    font-size: 11px;
-    color: var(--stone);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-  .msg-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 22px;
-    color: var(--gold);
-    margin-bottom: 8px;
-  }
-  /* КАСТОМНЕ ВІКНО ЗАМОВЛЕННЯ (MODAL) */
-.modal-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    /* Робимо фон майже повністю чорним замість важкого blur */
-    background: rgba(10,10,10,0.95); 
-    z-index: 1000; display: none; align-items: center; justify-content: center;
-    opacity: 0; transition: opacity 0.3s ease;
-  }
-  .modal-overlay.active {
-    display: flex;
-    opacity: 1;
-  }
-  .modal-content {
-    background: var(--surface);
-    border: 0.5px solid rgba(201,168,76,0.4);
-    padding: 40px;
-    width: 100%;
-    max-width: 500px; /* Трохи розширили для кошика */
-    position: relative;
-    transform: translateY(20px);
-    transition: transform 0.3s ease;
-  }
-  .modal-overlay.active .modal-content {
-    transform: translateY(0);
-  }
-  .modal-close {
-    position: absolute;
-    top: 16px; right: 20px;
-    background: transparent; border: none;
-    color: var(--stone); font-size: 28px;
-    cursor: pointer; transition: color 0.2s;
-    line-height: 1;
-  }
-  .modal-close:hover { color: var(--gold); }
-  /* ФЛОАТИНГ КНОПКА ТА ЕЛЕМЕНТИ КОШИКА */
-  .cart-floating-btn {
-    position: fixed; bottom: 40px; right: 40px;
-    background: var(--gold); color: var(--noir);
-    border: none; border-radius: 50px;
-    padding: 16px 24px; font-family: 'Inter', sans-serif;
-    font-weight: 500; font-size: 14px; cursor: pointer;
-    display: none; /* Сховано, поки кошик порожній */
-    box-shadow: 0 4px 20px rgba(201,168,76,0.3);
-    z-index: 99; transition: transform 0.2s;
-  }
-  .cart-floating-btn:hover { transform: scale(1.05); background: var(--gold-light); }
-  
-  .cart-item {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 12px 0; border-bottom: 0.5px solid rgba(138,130,120,0.2);
-  }
-  .cart-item-title { font-size: 14px; color: var(--ivory); }
-  .cart-item-price { font-size: 14px; color: var(--gold); }
-  .cart-item-remove { background: transparent; border: none; color: #ff6b6b; cursor: pointer; font-size: 18px; padding: 0 8px; }
 
-  /* Блокування фону при відкритому кошику (прибирає лаги) */
+  /* FOOTER */
+  .g-footer { border-top: 1px solid var(--surface-border); padding: 56px 48px 40px; display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 40px; }
+  .footer-logo { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 400; letter-spacing: 0.06em; margin-bottom: 16px; }
+  .footer-logo span { color: var(--gold); font-style: italic; }
+  .footer-desc { font-size: 12px; color: var(--stone); line-height: 1.75; font-weight: 300; max-width: 260px; }
+  .footer-col-title { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--stone); margin-bottom: 20px; }
+  .footer-links { list-style: none; }
+  .footer-links li { margin-bottom: 12px; }
+  .footer-links li a { font-size: 13px; color: var(--stone-light); text-decoration: none; cursor: pointer; font-weight: 300; transition: var(--transition-smooth); }
+  .footer-links li a:hover { color: var(--gold); }
+  .footer-bottom { border-top: 1px solid var(--surface-border); padding: 24px 48px 32px; display: flex; justify-content: space-between; align-items: center; }
+  .footer-copy { font-size: 11px; color: var(--stone); font-weight: 300; }
+  .footer-tagline { font-family: 'Cormorant Garamond', serif; font-size: 13px; color: var(--stone); font-style: italic; }
+
+  /* MISC UI */
+  .gold-line { width: 100%; height: 1px; background: linear-gradient(to right, transparent, var(--gold), transparent); opacity: 0.3; margin: 0; }
+  .tag-pill { display: inline-block; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; padding: 4px 12px; border: 1px solid var(--surface-border); color: var(--gold); border-radius: 6px; }
+
+  /* MODALS (КОШИК) */
+  .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+  .modal-overlay.active { display: flex; opacity: 1; }
+  .modal-content { background: var(--surface2); border: 1px solid var(--surface-border); border-radius: 20px; padding: 40px; width: 100%; max-width: 500px; position: relative; transform: translateY(20px) scale(0.95); transition: var(--transition-bounce); box-shadow: 0 30px 60px rgba(0,0,0,0.6); }
+  .modal-overlay.active .modal-content { transform: translateY(0) scale(1); }
+  .modal-close { position: absolute; top: 16px; right: 20px; background: transparent; border: none; color: var(--stone); font-size: 28px; cursor: pointer; transition: var(--transition-smooth); line-height: 1; }
+  .modal-close:hover { color: var(--gold); }
   body.modal-open { overflow: hidden; }
 
-  /* Стилі для кнопок кількості товару (+ / -) */
-  .cart-qty-ctrl {
-    display: flex; align-items: center; gap: 8px;
-    background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px;
-  }
-  .qty-btn {
-    background: transparent; border: none; color: var(--gold);
-    font-size: 16px; cursor: pointer; width: 20px; height: 20px;
-    display: flex; align-items: center; justify-content: center;
-  }
+  /* CART & AI FLOATING BUTTONS */
+  .cart-floating-btn { position: fixed; bottom: 40px; right: 40px; background: linear-gradient(135deg, var(--gold), #b5952f); color: var(--noir); border: none; border-radius: 50px; padding: 16px 24px; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 14px; cursor: pointer; display: none; box-shadow: 0 8px 25px rgba(212,175,55,0.4); z-index: 1000; transition: var(--transition-bounce); will-change: transform; }
+  .cart-floating-btn:hover { transform: translateY(-5px) scale(1.05); box-shadow: 0 12px 35px var(--gold-glow); }
+  
+  .ai-chat-btn { position: fixed; bottom: 40px; left: 40px; background: var(--surface2); color: var(--gold); border: 1px solid var(--surface-border); border-radius: 50px; padding: 16px 24px; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 99; transition: var(--transition-bounce); backdrop-filter: blur(10px); }
+  .ai-chat-btn:hover { background: var(--gold); color: var(--noir); transform: translateY(-5px) scale(1.05); box-shadow: 0 15px 40px var(--gold-glow); }
+  
+  .ai-chat-window { position: fixed; bottom: 110px; left: 40px; width: 450px; height: 600px; background: rgba(15, 15, 15, 0.85); border: 1px solid var(--surface-border); border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); z-index: 1000; display: none; flex-direction: column; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease; transform: translateY(20px) scale(0.95); opacity: 0; }
+  .ai-chat-window.active { display: flex; transform: translateY(0) scale(1); opacity: 1; }
+  .ai-chat-header { background: var(--slate); padding: 16px 20px; border-bottom: 1px solid var(--surface-border); display: flex; justify-content: space-between; align-items: center; border-radius: 16px 16px 0 0; }
+  .ai-chat-title { font-family: 'Cormorant Garamond', serif; font-size: 18px; color: var(--gold); font-weight: 500; letter-spacing: 0.05em; }
+  .ai-chat-close { background: transparent; border: none; color: var(--stone); font-size: 24px; cursor: pointer; line-height: 1; transition: var(--transition-smooth); }
+  .ai-chat-close:hover { color: var(--gold); }
+  .ai-chat-messages { flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; scroll-behavior: smooth; }
+  .chat-msg { max-width: 85%; padding: 12px 16px; font-size: 13px; line-height: 1.5; border-radius: 12px; word-wrap: break-word; }
+  .chat-msg.user { background: rgba(201,168,76,0.1); color: var(--ivory); align-self: flex-end; border-bottom-right-radius: 0; border: 1px solid rgba(201,168,76,0.2); }
+  .chat-msg.ai { background: var(--slate); color: var(--stone-light); align-self: flex-start; border-bottom-left-radius: 0; border: 1px solid var(--surface-border); }
+  .ai-chat-input-area { padding: 14px; border-top: 1px solid var(--surface-border); display: flex; gap: 10px; background: var(--slate); border-radius: 0 0 16px 16px;}
+  .ai-chat-input { flex-grow: 1; }
+  .ai-chat-send { background: linear-gradient(135deg, var(--gold), #b5952f); color: var(--noir); border: none; padding: 10px 16px; font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; cursor: pointer; font-family: 'Inter', sans-serif; font-weight: 600; border-radius: 8px; transition: var(--transition-smooth);}
+  .ai-chat-send:hover { transform: scale(1.02); }
+
+  /* CART ITEMS */
+  .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(138,130,120,0.1); }
+  .cart-item-title { font-size: 14px; color: var(--ivory); }
+  .cart-item-price { font-size: 14px; color: var(--gold); }
+  .cart-item-remove { background: transparent; border: none; color: #ff6b6b; cursor: pointer; font-size: 18px; padding: 0 8px; transition: var(--transition-smooth); }
+  .cart-item-remove:hover { transform: scale(1.2); }
+  .cart-qty-ctrl { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 8px; }
+  .qty-btn { background: transparent; border: none; color: var(--gold); font-size: 16px; cursor: pointer; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; }
   .qty-btn:hover { color: var(--ivory); }
   .qty-num { font-size: 13px; color: var(--ivory); min-width: 16px; text-align: center; }
 
-  /* СТИЛІ ДЛЯ СПОВІЩЕНЬ (TOAST) */
-  #toast-container {
-    position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
-    z-index: 1000; display: flex; flex-direction: column; gap: 10px; pointer-events: none;
-  }
-  .toast {
-    background: var(--surface2); color: var(--ivory); border: 0.5px solid rgba(201,168,76,0.4);
-    padding: 12px 24px; font-family: 'Inter', sans-serif; font-size: 13px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.5); opacity: 0; transform: translateY(20px); transition: all 0.3s ease;
-  }
+  /* TOASTS */
+  #toast-container { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+  .toast { background: rgba(30, 30, 30, 0.9); backdrop-filter: blur(10px); color: var(--ivory); border-left: 4px solid var(--gold); padding: 14px 24px; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); opacity: 0; transform: translateY(20px); transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
   .toast.show { opacity: 1; transform: translateY(0); }
-/* ОПТИМІЗАЦІЯ СКРОЛУ ТА КАСТОМНИЙ СКРОЛБАР ДЛЯ КОШИКА */
-  #cart-items-list {
-    margin-bottom: 24px; 
-    max-height: 250px; 
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    -webkit-overflow-scrolling: touch; /* Вмикає плавний скрол на смартфонах */
-    transform: translateZ(0); /* Змушує обробляти скрол через відеокарту */
-    padding-right: 8px;
-  }
-  
-  #cart-items-list::-webkit-scrollbar {
-    width: 6px;
-  }
-  #cart-items-list::-webkit-scrollbar-track {
-    background: rgba(138,130,120,0.05);
-    border-radius: 4px;
-  }
-  #cart-items-list::-webkit-scrollbar-thumb {
-    background: rgba(138,130,120,0.3);
-    border-radius: 4px;
-  }
-  #cart-items-list::-webkit-scrollbar-thumb:hover {
-    background: var(--gold);
-  }
+
+  /* SCROLLBAR */
+  #cart-items-list { margin-bottom: 24px; max-height: 250px; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; transform: translateZ(0); padding-right: 8px; }
+  #cart-items-list::-webkit-scrollbar { width: 6px; }
+  #cart-items-list::-webkit-scrollbar-track { background: rgba(138,130,120,0.05); border-radius: 4px; }
+  #cart-items-list::-webkit-scrollbar-thumb { background: rgba(138,130,120,0.3); border-radius: 4px; }
+  #cart-items-list::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+
+  /* TELEGRAM LOADER */
+  .telegram-btn { position: fixed; bottom: 110px; right: 40px; background: #2AABEE; color: #fff; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(42,171,238,0.3); z-index: 99; text-decoration: none; transition: transform 0.3s; }
+  .telegram-btn:hover { transform: scale(1.1); color: #fff; }
+  .telegram-icon { width: 28px; height: 28px; fill: currentColor; }
+  @keyframes pulseLoader { 0% { opacity: 0.5; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0.5; transform: scale(0.9); } }
+
   /* =========================================
-     АДАПТАЦІЯ ДЛЯ МОБІЛЬНИХ ПРИСТРОЇВ (RESPONSIVE)
+     АДАПТАЦІЯ ДЛЯ МОБІЛЬНИХ ПРИСТРОЇВ
      ========================================= */
-/* Ховаємо дублікат кнопки на комп'ютері */
-  .mobile-only-btn { display: none; }
-  /* Планшети (до 1024px) */
   @media (max-width: 1024px) {
     .hero-stats { grid-template-columns: repeat(2, 1fr); gap: 24px; border: none; padding-top: 0; }
-    .hero-stat { border-right: none; border-bottom: 0.5px solid rgba(138,130,120,0.15); padding-bottom: 16px; padding-right: 0; }
-    .locations-grid, .features-grid, .products-grid { grid-template-columns: repeat(2, 1fr); }
+    .hero-stat { border-right: none; border-bottom: 1px solid var(--surface-border); padding-bottom: 16px; padding-right: 0; }
+    .locations-grid, .features-grid, .products-grid, .about-pillars, .g-footer { grid-template-columns: repeat(2, 1fr); }
     .loc-card.featured { grid-row: auto; grid-column: 1 / -1; }
-    .about-pillars, .g-footer { grid-template-columns: repeat(2, 1fr); }
     .contact-layout, .about-intro { gap: 40px; }
     .map-layout { grid-template-columns: 250px 1fr; }
     .admin-dashboard { grid-template-columns: 200px 1fr; gap: 20px; padding: 0 24px 100px; }
   }
 
-  /* Смартфони (до 768px) */
   @media (max-width: 768px) {
-/* Бургер-меню для мобільних */
     .g-nav { padding: 0 20px; justify-content: space-between; }
     .g-logo { margin-top: 0; font-size: 24px; }
     .g-nav-cta { display: none; }
-    .mobile-menu-btn { display: block; } /* Показуємо кнопку */
+    .mobile-menu-btn { display: block; }
     
     .g-nav-links {
       position: fixed; top: 64px; left: 0; width: 100%; height: calc(100vh - 64px);
-      background: rgba(10,10,10,0.98); border-top: 0.5px solid rgba(201,168,76,0.2);
+      background: rgba(10,10,10,0.98); border-top: 1px solid var(--surface-border);
       flex-direction: column; justify-content: center; align-items: center; gap: 40px;
-      z-index: 9999; backdrop-filter: blur(10px); margin: 0;
-      /* Ховаємо меню за межі екрана */
+      z-index: 9999; backdrop-filter: blur(15px); margin: 0;
       transform: translateY(-150%); opacity: 0; transition: all 0.4s ease;
     }
-    /* Клас, який буде відкривати меню */
     .g-nav-links.open { transform: translateY(0); opacity: 1; }
     .g-nav-links li a { font-size: 16px; letter-spacing: 0.15em; padding: 10px; }
     
+    .mobile-only-btn { display: block; width: 100%; text-align: center; margin-top: 20px; }
+    .mobile-only-btn .btn-primary { width: 80%; padding: 14px; font-size: 12px; }
     
-    /* Відступи для мобільних екранів */
-    #gastro-app { padding-bottom: 0; } /* Прибрали відступ знизу, бо меню тепер там немає */
-    .hero, .section, .page-hero, .loc-list, .map-container, .contact-layout, .about-intro, .about-pillars, .about-timeline, .products-grid, .g-footer, .footer-bottom, .filters-bar {
-      padding-left: 20px; padding-right: 20px;
-    }
+    #gastro-app { padding-bottom: 0; }
+    .hero, .section, .page-hero, .loc-list, .map-container, .contact-layout, .about-intro, .about-pillars, .about-timeline, .products-grid, .g-footer, .footer-bottom, .filters-bar { padding-left: 20px; padding-right: 20px; }
     
-    /* HERO Секція - ВИПРАВЛЕННЯ НАКЛАДАННЯ */
     .hero { min-height: auto; padding-top: 40px; padding-bottom: 60px; justify-content: flex-start; }
     .hero-bg-text { font-size: 90px; right: 0; top: 15%; opacity: 0.03; }
     .hero-title { font-size: 44px; margin-top: 20px; }
     .hero-subtitle { margin-bottom: 32px; font-size: 15px; }
     .hero-actions { flex-direction: column; align-items: stretch; gap: 16px; }
     .hero-actions button { width: 100%; }
+    .hero-stats { position: relative; bottom: auto; left: auto; right: auto; margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--surface-border); }
     
-    /* Відклеюємо статистику і ставимо її під кнопки */
-    .hero-stats { 
-      position: relative; bottom: auto; left: auto; right: auto; 
-      margin-top: 48px; padding-top: 24px; 
-      border-top: 0.5px solid rgba(201,168,76,0.2); 
-    }
-    
-    /* Тексти */
     .section-title, .page-title, .contact-info-title, .about-big-text { font-size: 38px; }
-
-    /* Складаємо сітки в одну колонку */
-    .locations-grid, .features-grid, .products-grid, .about-pillars, .g-footer, .contact-layout, .about-intro {
-      grid-template-columns: 1fr;
-    }
+    .locations-grid, .features-grid, .products-grid, .about-pillars, .g-footer, .contact-layout, .about-intro { grid-template-columns: 1fr; }
     
-    /* Спрощуємо список локацій */
     .loc-row { grid-template-columns: 40px 1fr; gap: 16px; }
     .loc-row > div:nth-child(3), .loc-row > div:nth-child(4), .loc-row > div:nth-child(6) { display: none; }
     .loc-row-score-val { text-align: left; }
 
-    /* Карта складається вертикально */
     .map-layout { grid-template-columns: 1fr; display: flex; flex-direction: column-reverse; }
     .map-viz { min-height: 400px; }
     .map-sidebar { max-height: 300px; }
     
-    /* Адмінка та Форми */
     .admin-dashboard { grid-template-columns: 1fr; padding: 0 20px 100px; }
-    .admin-sidebar { flex-direction: row; overflow-x: auto; white-space: nowrap; border-right: none; border-bottom: 0.5px solid rgba(138,130,120,0.15); padding-bottom: 0; }
-    .admin-tab-btn { border-bottom: none; border-left: none; padding: 16px; }
-    .admin-tab-btn.active { border-left: none; border-bottom: 2px solid var(--gold); background: transparent; }
+    .admin-sidebar { flex-direction: row; overflow-x: auto; white-space: nowrap; border-right: none; border-bottom: 1px solid var(--surface-border); padding-bottom: 0; border-radius: 0; }
+    .admin-tab-btn { border-left: none; border-bottom: 3px solid transparent; padding: 16px; width: auto; }
+    .admin-tab-btn.active { border-left: none; border-bottom: 3px solid var(--gold); background: transparent; }
     .admin-panel-content { padding: 20px; }
     .form-row[style] { grid-template-columns: 1fr !important; }
     
-    /* Кошик та Фільтри */
     .modal-content { padding: 24px; margin: 16px; width: calc(100% - 32px); }
-    .cart-floating-btn { bottom: 20px; right: 20px; } /* Піднімаємо кошик над мобільним меню */
     .filters-bar { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 16px; margin-bottom: 20px; }
     .filter-btn { white-space: nowrap; }
-  }
-  /* СТИЛІ ДЛЯ AI ЧАТ-ГІДА */
-  .ai-chat-btn { position: fixed; bottom: 40px; left: 40px; background: #1A1A1A; color: var(--gold); border: 0.5px solid var(--gold); border-radius: 50px; padding: 16px 24px; font-family: 'Inter', sans-serif; font-size: 13px; letter-spacing: 0.05em; text-transform: uppercase; cursor: pointer; box-shadow: 0 4px 25px rgba(201,168,76,0.15); z-index: 99; transition: all 0.3s ease; }
-  .ai-chat-btn:hover { background: var(--gold); color: var(--noir); transform: scale(1.05); }
-  .ai-chat-window { position: fixed; bottom: 110px; left: 40px; width: 550px; height: 650px; background: var(--surface); border: 0.5px solid rgba(201,168,76,0.4); box-shadow: 0 10px 40px rgba(0,0,0,0.8); z-index: 1000; display: none; flex-direction: column; transition: all 0.3s ease; }
-  .ai-chat-window.active { display: flex; }
-  .ai-chat-header { background: var(--slate); padding: 16px 20px; border-bottom: 0.5px solid rgba(201,168,76,0.2); display: flex; justify-content: space-between; align-items: center; }
-  .ai-chat-title { font-family: 'Cormorant Garamond', serif; font-size: 18px; color: var(--gold); font-weight: 500; letter-spacing: 0.05em; }
-  .ai-chat-close { background: transparent; border: none; color: var(--stone); font-size: 24px; cursor: pointer; line-height: 1; }
-  .ai-chat-close:hover { color: var(--gold); }
-  .ai-chat-messages { flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; scroll-behavior: smooth; }
-  .chat-msg { max-width: 85%; padding: 10px 14px; font-size: 13px; line-height: 1.5; border-radius: 4px; word-wrap: break-word; }
-  .chat-msg.user { background: rgba(201,168,76,0.1); color: var(--ivory); align-self: flex-end; border-bottom-right-radius: 0; border: 0.5px solid rgba(201,168,76,0.2); }
-  .chat-msg.ai { background: var(--slate); color: var(--stone-light); align-self: flex-start; border-bottom-left-radius: 0; border: 0.5px solid rgba(138,130,120,0.2); }
-  .ai-chat-input-area { padding: 14px; border-top: 0.5px solid rgba(138,130,120,0.2); display: flex; gap: 10px; background: var(--slate); }
-  .ai-chat-input { flex-grow: 1; background: rgba(255,255,255,0.03); border: 0.5px solid rgba(138,130,120,0.25); color: var(--ivory); padding: 10px 14px; font-size: 13px; font-family: 'Inter', sans-serif; outline: none; }
-  .ai-chat-input:focus { border-color: var(--gold); }
-  .ai-chat-send { background: var(--gold); color: var(--noir); border: none; padding: 10px 16px; font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; cursor: pointer; font-family: 'Inter', sans-serif; font-weight: 500; }
-  
-  @media (max-width: 768px) {
-    /* Піднімаємо вікно чату ще вище, щоб не перекривало кнопки */
-    .ai-chat-window { width: calc(100% - 40px); height: 420px; bottom: 140px; left: 20px; right: 20px; }
-    
-    /* Переносимо AI-кнопку вправо, рівно НАД кошиком */
-    .ai-chat-btn { 
-      bottom: 85px; right: 20px; left: auto; 
-      padding: 12px 18px; font-size: 11px; z-index: 100; 
-    }
-    
-    /* Фіксуємо кошик у самому правому куті */
-    .cart-floating-btn { 
-      bottom: 20px; right: 20px; left: auto; 
-      padding: 12px 18px; font-size: 12px; z-index: 99; 
-    }
-  }
-  /* СТИЛІ ДЛЯ TELEGRAM-БОТА ТА ЛОАДЕРА */
-  .telegram-btn { position: fixed; bottom: 110px; right: 40px; background: #2AABEE; color: #fff; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(42,171,238,0.3); z-index: 99; text-decoration: none; transition: transform 0.3s; }
-  .telegram-btn:hover { transform: scale(1.1); color: #fff; }
-  .telegram-icon { width: 28px; height: 28px; fill: currentColor; }
-  
-  @keyframes pulseLoader { 0% { opacity: 0.5; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0.5; transform: scale(0.9); } }
-  
-  @media (max-width: 768px) { 
+
+    .ai-chat-btn { z-index: 90 !important; bottom: 85px; right: 20px; left: auto; padding: 12px 18px; font-size: 11px; }
+    .cart-floating-btn { bottom: 20px; right: 20px; left: auto; padding: 12px 18px; font-size: 12px; z-index: 99; }
     .telegram-btn { bottom: 85px; right: 20px; width: 48px; height: 48px; }
     .telegram-icon { width: 24px; height: 24px; }
+    
+    .ai-chat-window { z-index: 500 !important; width: calc(100% - 40px); height: 420px; bottom: 140px; left: 20px; right: 20px; }
   }
-  /* =========================================
-   ПАТЧ: Мобільна кнопка та шари AI
-   ========================================= */
-
-/* Знижуємо пріоритет кнопки та вікна ШІ, щоб кошик (1000) та меню (9999) ховали їх під собою */
-.ai-chat-btn {
-  z-index: 90 !important;
-}
-.ai-chat-window {
-  z-index: 500 !important;
-}
-
-@media (max-width: 768px) {
-  /* Показуємо приховану кнопку "Долучитися" всередині мобільного меню */
-  .mobile-only-btn {
-    display: block !important;
-    width: 100%;
-    text-align: center;
-    margin-top: 20px;
+/* 🤖 ІНТЕРФЕЙС "ТОНІ СТАРК" / JARVIS ДЛЯ КАРТИ */
+  .jarvis-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(2, 6, 12, 0.98); 
+    z-index: 3000; display: none; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 0.4s ease;
+  }
+  .jarvis-overlay.active { display: flex; opacity: 1; }
+  
+  .jarvis-content {
+    width: 95%; max-width: 1150px; /* 🚀 Збільшено максимальну ширину */
+    background: transparent; 
+    border: none; box-shadow: none; padding: 20px; position: relative;
+    transform: scale(1.1) translateY(30px);
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .jarvis-overlay.active .jarvis-content { transform: scale(1) translateY(0); }
+  
+  /* РІВНИЙ ХРЕСТИК ЗАКРИТТЯ */
+  .jarvis-close { 
+    position: absolute; top: -10px; right: 0; /* Підняли хрестик вище */
+    background: rgba(10, 10, 10, 0.9); border: 1px solid var(--gold); color: var(--gold); 
+    font-size: 28px; cursor: pointer; transition: 0.3s; z-index: 20;
+    width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+    border-radius: 50%; box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+  }
+  .jarvis-close:hover { transform: rotate(90deg) scale(1.1); background: var(--gold); color: #000; }
+  
+  /* ОКРЕМІ ЛІТАЮЧІ ПАНЕЛІ ГОЛОГРАМИ */
+  .jarvis-header, .jarvis-info-box {
+    background: rgba(10, 10, 10, 0.85);
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    box-shadow: 0 0 30px rgba(0,0,0,0.8), inset 0 0 20px rgba(212,175,55,0.05);
+    padding: 32px 40px; border-radius: 12px; /* Збільшено внутрішні відступи */
   }
   
-  /* Стилізуємо її під розмір меню */
-  .mobile-only-btn .btn-primary {
-    width: 80%;
-    padding: 14px;
-    font-size: 12px;
+  .jarvis-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+  .jarvis-label { font-size: 11px; color: var(--gold); letter-spacing: 0.3em; text-transform: uppercase; animation: pulseText 2s infinite; }
+  .jarvis-title { font-family: 'Cormorant Garamond', serif; font-size: 48px; color: var(--ivory); line-height: 1.1; margin-top: 8px;} /* 🚀 Збільшено заголовок */
+  .jarvis-rating { font-size: 68px; color: var(--gold); font-family: 'Inter', sans-serif; font-weight: 300; line-height: 1; text-shadow: 0 0 20px rgba(212, 175, 55, 0.4); text-align: right;} /* 🚀 Збільшено рейтинг */
+  
+  .jarvis-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 32px; } /* Фото тепер трохи ширше за текст */
+  
+  .jarvis-image-wrapper { position: relative; border-radius: 12px; overflow: hidden; height: 460px; border: 1px solid rgba(212, 175, 55, 0.4); box-shadow: 0 0 30px rgba(0,0,0,0.8); } /* 🚀 Збільшено висоту */
+  .jarvis-img { width: 100%; height: 100%; object-fit: cover; filter: contrast(1.15) saturate(1.2); }
+  
+  .jarvis-scanner {
+    position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: var(--gold);
+    box-shadow: 0 0 15px 4px rgba(212, 175, 55, 0.6); animation: scanLinesDesktop 3s infinite linear; z-index: 2;
+    will-change: transform;
   }
-}
+  @keyframes scanLinesDesktop { 0% { transform: translateY(-10px); } 100% { transform: translateY(460px); } } /* 🚀 Адаптовано під нову висоту */
+  
+  .jarvis-info-box { display: flex; flex-direction: column; gap: 16px; height: 460px; justify-content: space-between;} /* 🚀 Збільшено висоту */
+  .jarvis-data-row { display: flex; justify-content: space-between; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--stone-light); border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px; }
+  .jarvis-data-row span:last-child { color: var(--ivory); font-weight: 500; text-align: right; font-size: 14px; }
+  .jarvis-desc { font-size: 15px; line-height: 1.8; color: var(--stone); flex-grow: 1; overflow-y: auto; padding-right: 12px; margin-bottom: 16px;}
+  @keyframes pulseText { 0% { opacity: 0.5; } 50% { opacity: 1; text-shadow: 0 0 8px var(--gold); } 100% { opacity: 0.5; } }
+
+  /* 🎯 КІНЕМАТОГРАФІЧНИЙ ПОПАП НА КАРТІ */
+  .leaflet-popup-content-wrapper { background: rgba(10, 10, 10, 0.95); border: 1px solid var(--gold); border-radius: 4px; box-shadow: 0 0 20px rgba(212, 175, 55, 0.2); }
+  .leaflet-popup-tip { background: rgba(10, 10, 10, 0.95); border: 1px solid var(--gold); }
+  .leaflet-popup-close-button { display: none !important; }
+  .cyber-popup-btn {
+    background: rgba(212, 175, 55, 0.1); border: 1px solid var(--gold); color: var(--gold);
+    width: 100%; padding: 8px; font-family: 'Inter', sans-serif; font-size: 10px; font-weight: bold; letter-spacing: 0.2em;
+    cursor: pointer; margin-top: 12px; transition: 0.3s;
+  }
+  .cyber-popup-btn:hover { background: var(--gold); color: #000; box-shadow: 0 0 15px var(--gold); }
+
+/* 📱 УЛЬТРА-ОПТИМІЗАЦІЯ ДЛЯ ТЕЛЕФОНІВ (Виправлено модалку J.A.R.V.I.S.) */
+  @media (max-width: 768px) {
+    /* 1. Робимо вікно компактним та дозволяємо йому скролитися */
+    .jarvis-content { 
+      padding: 10px; 
+      width: 95%; 
+      max-height: 90vh; /* Вікно не буде вилазити за екран */
+      overflow-y: auto; /* Дозволяємо скрол пальцем */
+      transform: scale(1) translateY(0) !important; 
+    }
+    
+    /* 2. Повертаємо хрестик всередину екрана */
+    .jarvis-close {
+      top: 10px;
+      right: 10px;
+      width: 36px;
+      height: 36px;
+      font-size: 20px;
+      z-index: 50;
+      background: var(--noir); /* Щоб його було чітко видно */
+    }
+
+    /* 3. Зменшуємо величезні відступи літаючих панелей */
+    .jarvis-header, .jarvis-info-box {
+      padding: 20px;
+      border-radius: 8px;
+    }
+    
+    /* 4. Вирівнюємо шапку (заголовок + рейтинг) */
+    .jarvis-header { 
+      flex-direction: column; 
+      align-items: flex-start; 
+      gap: 8px; 
+      margin-top: 30px; /* Відступаємо від хрестика */
+      margin-bottom: 16px; 
+    }
+    
+    /* 5. Зменшуємо шрифти до мобільних розмірів */
+    .jarvis-title { font-size: 28px; line-height: 1.1; margin-top: 4px; }
+    .jarvis-rating { font-size: 46px; text-align: left; }
+    .jarvis-rating-box { align-self: flex-start; }
+    
+    /* 6. Складаємо сітку в одну колонку */
+    .jarvis-grid { grid-template-columns: 1fr; gap: 16px; }
+    
+    /* 7. Адаптуємо картинку та сканер */
+    .jarvis-image-wrapper { height: 220px; min-height: auto; }
+    .jarvis-scanner { animation: scanLinesMobile 3s infinite linear; }
+    @keyframes scanLinesMobile { 0% { transform: translateY(-10px); } 100% { transform: translateY(220px); } }
+    
+    /* 8. Адаптуємо блок з інформацією */
+    .jarvis-info-box { height: auto; min-height: auto; gap: 12px; }
+    .jarvis-desc { font-size: 13px; max-height: none; overflow: visible; padding-right: 0; margin-bottom: 16px; }
+    
+    /* 9. Кнопки ставимо одну під одною */
+    .jarvis-info-box > div:last-child { flex-direction: column; gap: 12px; }
+    .jarvis-info-box button { width: 100%; padding: 16px; }
+  }
 </style>
 
 <div id="gastro-app">
@@ -1949,6 +1199,38 @@
       </form>
     </div>
   </div>
+  <div class="jarvis-overlay" id="jarvis-modal">
+    <div class="jarvis-content">
+      <button class="jarvis-close" onclick="closeJarvisModal()">×</button>
+      <div class="jarvis-header">
+        <div class="jarvis-title-box">
+          <div class="jarvis-label">Аналіз об'єкта завершено</div>
+          <div class="jarvis-title" id="jarvis-title">Локація</div>
+        </div>
+        <div class="jarvis-rating-box">
+          <div class="jarvis-rating" id="jarvis-rating">9.8</div>
+          <div class="jarvis-label" style="margin-top:4px;">AI-Рейтинг</div>
+        </div>
+      </div>
+      <div class="jarvis-grid">
+        <div class="jarvis-image-wrapper">
+          <div class="jarvis-scanner"></div>
+          <img id="jarvis-img" src="" alt="Location" class="jarvis-img">
+        </div>
+        <div class="jarvis-info-box">
+          <div class="jarvis-data-row"><span>Категорія:</span> <span id="jarvis-cat">...</span></div>
+          <div class="jarvis-data-row"><span>Місто:</span> <span id="jarvis-city">...</span></div>
+          <div class="jarvis-data-row"><span>Бюджет:</span> <span id="jarvis-price">...</span></div>
+          <div class="jarvis-data-row"><span>Координати:</span> <span id="jarvis-coords">...</span></div>
+          <div class="jarvis-desc" id="jarvis-desc">Детальний опис...</div>
+          <div style="display:flex; gap:16px; margin-top:16px;">
+            <button class="btn-primary" style="flex:1; justify-content:center;" onclick="showToast('📍 Маршрут будується...')">Побудувати маршрут</button>
+            <button class="btn-outline" style="flex:1; justify-content:center;" onclick="closeJarvisModal()">Закрити вікно</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
@@ -1967,16 +1249,16 @@ function showPage(id, updateHistory = true) {
   
   document.getElementById('gastro-app').scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-  // 👇 ДОДАЙ ЦІ ТРИ РЯДКИ ДЛЯ КАРТИ 👇
+  // Оновлення розміру карти при переході
   if (id === 'map' && myMap) {
     setTimeout(() => { myMap.invalidateSize(); }, 200);
   }
-  // 👆 КІНЕЦЬ НОВОГО КОДУ 👆
 
   if (updateHistory) {
     window.history.pushState({ page: id }, "", `#${id}`);
   }
 }
+
 // Відкриття/закриття бургер-меню
 function toggleMobileMenu() {
     document.getElementById('mobile-nav').classList.toggle('open');
@@ -1988,11 +1270,20 @@ window.addEventListener('popstate', (event) => {
 });
 
 // --- ДАНІ ТА ЗАВАНТАЖЕННЯ ---
-let editingProductId = null; // Сюди буде записуватись ID товару, який ми редагуємо
+let editingProductId = null; 
 let allLocations = []; 
 let allProducts = [];
-// Завантажуємо кошик з пам'яті браузера, якщо він там є
 let cart = JSON.parse(localStorage.getItem('gastro_cart')) || [];
+
+// 🤖 ФЕЙКОВІ КІНЕМАТОГРАФІЧНІ ДАНІ (Для тесту дизайну Тоні Старка)
+const mockLocations = [
+  { id: 'jarvis-1', name: 'Ресторація "Поліський Азарт"', city: 'Рівне', category: 'Ресторани', latitude: 50.6210, longitude: 26.2550, ai_rating: 9.9, price_range: '700 - 1500 грн', tags: ['Ексклюзив'], description: 'Елітний заклад закритого типу. Шеф-кухар використовує техніки молекулярної кухні для відтворення старовинних поліських рецептів. У підвалі знаходиться секретна кімната витримки мациків. Доступ лише за бронюванням.', image_url: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&q=80&w=1000' },
+  { id: 'jarvis-2', name: 'Еко-ферма "Золотий Журавлик"', city: 'Острог', category: 'Фермерські садиби', latitude: 50.3294, longitude: 26.5200, ai_rating: 9.7, price_range: '400 - 800 грн', tags: ['Еко-туризм'], description: 'Сучасна роботизована еко-ферма. Худоба вирощується під наглядом штучного інтелекту, що аналізує раціон. Локація пропонує дегустаційні сети крафтових сирів та в\'яленого м\'яса з панорамним видом на ліс.', image_url: 'https://images.unsplash.com/photo-1600891964092-4316c288032e?auto=format&fit=crop&q=80&w=1000' }
+];
+
+const mockProducts = [
+  { id: 'mock-1', name: 'Мацик "Cyber-Полісся"', manufacturer: 'ФОП Балдич', category: 'Сиров\'ялені делікатеси', price: 1200, weight: '1 кг', tag: 'Лімітовано', description: 'Ексклюзивний мацик, витриманий у спеціальній кліматичній камері з ідеальним контролем вологи. Пікантний смак з нотками трюфеля та ялівцю.', image_url: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&q=80&w=800' }
+];
 
 const mapCityCoords = {
   "Рівне": { x: 230, y: 185 },
@@ -2007,35 +1298,36 @@ document.addEventListener('DOMContentLoaded', () => {
   showPage(hash, false);
   loadLocations();
   loadProducts();
-  updateCartUI(); // ВІДНОВЛЮЄМО КНОПКУ КОШИКА
+  updateCartUI(); 
   loadPublicStats();
 
-  // Вимикаємо лоадер після завантаження сторінки
   setTimeout(() => {
     const loader = document.getElementById('global-loader');
     if(loader) {
       loader.style.opacity = '0';
       setTimeout(() => loader.style.display = 'none', 500);
     }
-  }, 800); // 0.8 сек для красивого ефекту
+  }, 800); 
 });
+
 // --- ФУНКЦІЯ ДИНАМІЧНОЇ СТАТИСТИКИ ГОЛОВНОЇ СТОРІНКИ ---
 async function loadPublicStats() {
   try {
-    // 1. Отримуємо локації
     const locRes = await fetch('/api/locations');
-    const locations = await locRes.json();
+    let locations = [];
+    if (locRes.ok) locations = await locRes.json();
+    
     const locElement = document.getElementById('public-stat-locs');
-    if (locElement) locElement.innerText = locations.length;
+    if (locElement) locElement.innerText = locations.length + 2; // +2 фейкові
 
-    // 2. Отримуємо продукти
     const prodRes = await fetch('/api/products');
-    const products = await prodRes.json();
+    let products = [];
+    if (prodRes.ok) products = await prodRes.json();
+    
     const prodElement = document.getElementById('public-stat-prods');
-    if (prodElement) prodElement.innerText = products.length;
+    if (prodElement) prodElement.innerText = products.length + 1; // +1 фейковий
 
-    // 3. Вираховуємо унікальних виробників з продуктів
-    const uniqueProducers = [...new Set(products.map(p => p.producer))].filter(p => p && p.trim() !== "");
+    const uniqueProducers = [...new Set([...products, ...mockProducts].map(p => p.manufacturer || p.producer))].filter(p => p && p.trim() !== "");
     const producerElement = document.getElementById('public-stat-producers');
     if (producerElement) producerElement.innerText = uniqueProducers.length;
 
@@ -2044,11 +1336,50 @@ async function loadPublicStats() {
   }
 }
 
+// --- 🤖 ЛОГІКА JARVIS MODAL (Інтерфейс карти Тоні Старка) ---
+function openJarvisModal(loc) {
+  document.getElementById('jarvis-title').innerText = loc.name;
+  document.getElementById('jarvis-rating').innerText = loc.ai_rating || 'N/A';
+  document.getElementById('jarvis-cat').innerText = loc.category || 'Не вказано';
+  document.getElementById('jarvis-city').innerText = loc.city || 'Не вказано';
+  document.getElementById('jarvis-price').innerText = loc.price_range || 'Уточнюється';
+  document.getElementById('jarvis-coords').innerText = `${parseFloat(loc.latitude).toFixed(4)}°, ${parseFloat(loc.longitude).toFixed(4)}°`;
+  document.getElementById('jarvis-desc').innerText = loc.description || 'Детальна інформація відсутня...';
+  
+  const placeholders = [
+    'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&q=80&w=1000',
+    'https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&q=80&w=1000'
+  ];
+  document.getElementById('jarvis-img').src = loc.image_url || placeholders[Math.floor(Math.random() * placeholders.length)];
+  
+  document.getElementById('jarvis-modal').classList.add('active');
+}
+
+function closeJarvisModal() { 
+  document.getElementById('jarvis-modal').classList.remove('active'); 
+}
+
+// 🛡️ БЕЗПЕЧНА ФУНКЦІЯ: Відкриває модалку лише за ID (не боїться апострофів)
+function openJarvisModalById(id) {
+  const loc = allLocations.find(l => String(l.id) === String(id));
+  if (loc) openJarvisModal(loc);
+}
+
 // --- ЛОГІКА ЛОКАЦІЙ ---
 async function loadLocations() {
   try {
     const response = await fetch('/api/locations');
-    allLocations = await response.json();
+    let dbLocations = [];
+    
+    // Якщо база даних відповіла без помилок - беремо дані
+    if (response.ok) {
+        dbLocations = await response.json();
+    } else {
+        console.warn("⚠️ Сервер БД недоступний. Завантажено лише демо-локації.");
+    }
+    
+    // Зліплюємо фейкові + реальні (навіть якщо реальних 0)
+    allLocations = [...mockLocations, ...dbLocations];
     
     renderLocationsList(allLocations);
     renderMap(allLocations);
@@ -2065,7 +1396,6 @@ function applyFilter(category, btnElement) {
   if (category === 'Всі') {
     renderLocationsList(allLocations);
   } else {
-    // Порівнюємо без урахування великих/малих літер
     const filterCat = category.trim().toUpperCase();
     const filteredData = allLocations.filter(loc => {
         const dbCat = (loc.category || '').trim().toUpperCase();
@@ -2075,6 +1405,7 @@ function applyFilter(category, btnElement) {
   }
 }
 
+// --- РЕНДЕР СПИСКУ ЛОКАЦІЙ (Виправлено клік) ---
 function renderLocationsList(locations) {
   const listContainer = document.querySelector('.loc-list');
   if (!listContainer) return;
@@ -2088,15 +1419,12 @@ function renderLocationsList(locations) {
   locations.forEach((loc, index) => {
     const rankNum = String(index + 1).padStart(2, '0');
     const scorePercent = (loc.ai_rating / 10) * 100;
-    
-    // Виводимо категорію як тег
     const tagHtml = `<span class="loc-row-tag">${loc.category || ''}</span>`;
-    // Виводимо адресу замість undefined
     const addressText = loc.address || '';
 
-    // РОБИМО РЯДОК КЛІКАБЕЛЬНИМ (перекидає на карту і центрує маркер)
+    // 🚀 ТУТ ВИПРАВЛЕНО: Використовуємо openJarvisModalById
     const rowHtml = `
-      <div class="loc-row reveal delay-${(index % 3) + 1}" onclick="showPage('map'); setTimeout(() => selectMapLocationById('${loc.id}'), 500)">
+      <div class="loc-row reveal delay-${(index % 3) + 1}" onclick="showPage('map'); setTimeout(() => { selectMapLocationById('${loc.id}'); setTimeout(() => openJarvisModalById('${loc.id}'), 800); }, 500)">
         <div class="loc-rank">${rankNum}</div>
         <div>
           <div class="loc-row-name">${loc.name}</div>
@@ -2164,8 +1492,8 @@ function renderFeaturedLocations(locations) {
   });
 }
 
-// --- ЛОГІКА КАРТИ (Leaflet) ---
-let myMap = null; // Змінна для зберігання карти
+// --- ЛОГІКА КАРТИ (Кінематографічний підліт + Виправлено кнопку) ---
+let myMap = null; 
 
 function renderMap(locations) {
   const sidebarList = document.getElementById('map-sidebar-list');
@@ -2173,9 +1501,15 @@ function renderMap(locations) {
   sidebarList.innerHTML = '';
 
   if (!myMap) {
-    myMap = L.map('real-interactive-map').setView([50.6199, 26.2516], 8);
+    myMap = L.map('real-interactive-map', { 
+        preferCanvas: true,
+        wheelPxPerZoomLevel: 120 
+    }).setView([50.6199, 26.2516], 8);
+    
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; OpenStreetMap & CartoDB'
+      attribution: '&copy; OpenStreetMap & CartoDB',
+      updateWhenIdle: true,
+      keepBuffer: 3
     }).addTo(myMap);
   } else {
     myMap.eachLayer((layer) => {
@@ -2185,25 +1519,33 @@ function renderMap(locations) {
 
   const goldIcon = L.divIcon({
     className: 'custom-gold-marker',
-    html: '<div style="background: var(--gold); width: 12px; height: 12px; border-radius: 50%; border: 3px solid #1A1A1A; box-shadow: 0 0 10px rgba(201,168,76,0.8);"></div>',
-    iconSize: [18, 18],
-    iconAnchor: [9, 9]
+    html: '<div style="background: var(--gold); width: 14px; height: 14px; border-radius: 50%; border: 3px solid #1A1A1A; box-shadow: 0 0 15px var(--gold);"></div>',
+    iconSize: [20, 20],
+    iconAnchor: [10, 10]
   });
 
   locations.forEach((loc) => {
-    // Зчитуємо правильні колонки з бази Supabase!
     const lat = parseFloat(loc.latitude);
     const lng = parseFloat(loc.longitude);
 
     if (!isNaN(lat) && !isNaN(lng)) {
       const marker = L.marker([lat, lng], { icon: goldIcon }).addTo(myMap);
       
+      // 🚀 ТУТ ВИПРАВЛЕНО: Використовуємо openJarvisModalById
       marker.bindPopup(`
-        <div style="font-family: 'Inter', sans-serif; text-align: center;">
-          <strong style="color: #1A1A1A; font-size: 14px;">${loc.name}</strong><br>
-          <span style="color: #666; font-size: 12px;">${loc.city} · ⭐️ ${loc.ai_rating}</span>
+        <div style="text-align: center; padding: 4px; font-family: 'Inter', sans-serif;">
+          <div style="font-size: 8px; color: var(--gold); letter-spacing: 0.3em; margin-bottom: 8px;">ЦІЛЬ ЗНАЙДЕНО</div>
+          <strong style="font-family: 'Cormorant Garamond', serif; font-size: 20px; color: var(--ivory); font-weight: 500;">${loc.name}</strong>
+          <button class="cyber-popup-btn" onclick="openJarvisModalById('${loc.id}')">[ СКАНУВАТИ ]</button>
         </div>
       `);
+      
+      marker.on('click', function(e) {
+        myMap.flyTo([lat, lng], 16, { animate: true, duration: 1.5 });
+        myMap.once('moveend', function() {
+            marker.openPopup();
+        });
+      });
 
       const sidebarItem = document.createElement('div');
       sidebarItem.className = 'map-item';
@@ -2212,10 +1554,11 @@ function renderMap(locations) {
         <div class="map-item-info"><span>${loc.city}</span><span style="color:var(--gold);">${loc.ai_rating} ★</span></div>
       `;
       
-      // При кліку в боковому меню
       sidebarItem.onclick = () => {
-        myMap.flyTo([lat, lng], 14, { animate: true, duration: 1.5 });
-        setTimeout(() => marker.openPopup(), 1500);
+        myMap.flyTo([lat, lng], 16, { animate: true, duration: 1.5 });
+        myMap.once('moveend', function() {
+            marker.openPopup();
+        });
       };
       
       sidebarList.appendChild(sidebarItem);
@@ -2227,13 +1570,11 @@ function renderMap(locations) {
 function handleMapSearch(query) {
   const searchTerm = query.toLowerCase().trim();
   
-  // Якщо поле пошуку порожнє — показуємо абсолютно всі локації
   if (searchTerm === '') {
     renderMap(allLocations);
     return;
   } 
   
-  // Фільтруємо локації за назвою, містом або категорією
   const filteredLocs = allLocations.filter(loc => {
     const nameMatch = loc.name && loc.name.toLowerCase().includes(searchTerm);
     const cityMatch = loc.city && loc.city.toLowerCase().includes(searchTerm);
@@ -2242,7 +1583,6 @@ function handleMapSearch(query) {
     return nameMatch || cityMatch || catMatch;
   });
   
-  // Відмальовуємо лише ті маркери та пункти меню, які співпали з пошуком
   renderMap(filteredLocs);
 }
 
@@ -2257,86 +1597,61 @@ function selectMapLocationById(id) {
   }
 }
 
-function selectMapLocation(loc, x, y) {
-  document.querySelectorAll('.map-item').forEach(item => item.classList.remove('selected'));
-  const activeItem = document.getElementById(`sidebar-item-${loc.id}`);
-  if (activeItem) activeItem.classList.add('selected');
-
-  document.querySelectorAll('.map-pin .pin-bg').forEach(bg => {
-     bg.setAttribute('r', '8');
-     bg.setAttribute('fill', 'rgba(201,168,76,0.15)');
-  });
-  document.querySelectorAll('.map-pin .pin-dot').forEach(dot => dot.setAttribute('fill', 'var(--gold)'));
-  
-  const activePin = document.getElementById(`pin-${loc.id}`);
-  if (activePin) {
-     activePin.querySelector('.pin-bg').setAttribute('r', '16');
-     activePin.querySelector('.pin-bg').setAttribute('fill', 'rgba(201,168,76,0.35)');
-     activePin.querySelector('.pin-dot').setAttribute('fill', '#fff');
-  }
-
-  const infoBox = document.getElementById('map-info-box');
-  document.getElementById('map-info-name').innerText = loc.name;
-  document.getElementById('map-info-sub').innerText = `${loc.city} · ${loc.category}`;
-  document.getElementById('map-info-score').innerText = loc.ai_rating;
-  infoBox.style.display = 'block';
-}
-
 // --- ЛОГІКА ТОВАРІВ ---
 async function loadProducts() {
   try {
     const response = await fetch('/api/products');
-    allProducts = await response.json();
+    let dbProducts = [];
     
-    // Автоматично збираємо всіх унікальних виробників для фільтра
+    // Якщо база даних відповіла без помилок - беремо дані
+    if (response.ok) {
+        dbProducts = await response.json();
+    } else {
+        console.warn("⚠️ Сервер БД недоступний. Завантажено лише демо-товари.");
+    }
+    
+    // Зліплюємо фейкові + реальні (навіть якщо реальних 0)
+    allProducts = [...mockProducts, ...dbProducts];
+    
     populateProducersList();
-    
     renderProducts(allProducts);
   } catch (error) { 
     console.error("Помилка завантаження товарів:", error); 
   }
 }
 
-// Функція, яка шукає всі фірми в базі і додає їх у Dropdown
-// Шукає всі фірми в базі і додає їх у Dropdown фільтра
 function populateProducersList() {
   const producerSelect = document.getElementById('filter-producer');
   if (!producerSelect) return;
   
-  // Витягуємо унікальні назви фірм
   const uniqueProducers = [...new Set(allProducts.map(p => p.manufacturer || p.producer))].filter(p => p && p.trim() !== "");
   
   producerSelect.innerHTML = '<option value="Всі">Всі виробники</option>';
   
   uniqueProducers.forEach(producer => {
-    // Екрануємо подвійні лапки, щоб вони не ламали HTML-код
     const safeValue = producer.replace(/"/g, '&quot;');
     producerSelect.innerHTML += `<option value="${safeValue}">${producer}</option>`;
   });
 }
 
-// Нова комплексна функція фільтрації (за категорією І за виробником)
 function applyComplexFilter() {
   const catValue = document.getElementById('filter-category').value;
   const prodValue = document.getElementById('filter-producer').value;
 
   let filteredData = allProducts;
 
-  // Фільтруємо за категорією (якщо обрано не "Всі")
   if (catValue !== 'Всі') {
     filteredData = filteredData.filter(prod => prod.category === catValue);
   }
   
-  // ВИПРАВЛЕНО: фільтруємо за правильною колонкою (manufacturer)
   if (prodValue !== 'Всі') {
     filteredData = filteredData.filter(prod => (prod.manufacturer || prod.producer) === prodValue);
   }
 
-  // Відмальовуємо відфільтровані картки
   renderProducts(filteredData);
 }
 
-
+// 🛒 Оновлені кінематографічні картки товарів (з темним градієнтом)
 function renderProducts(products) {
   const container = document.getElementById('dynamic-products-grid');
   if (!container) return;
@@ -2354,28 +1669,28 @@ function renderProducts(products) {
   }
 
   products.forEach(prod => {
-    // ВИПРАВЛЕНО: Зчитуємо правильний тег
     const tagText = prod.tag || '';
-    const tagHtml = tagText 
-      ? `<div style="position:absolute; top:16px; left:16px; z-index:2;"><span class="tag-pill" style="background:var(--noir);">${tagText}</span></div>` 
-      : '';
+    const tagHtml = tagText ? `<div style="position:absolute; top:16px; left:16px; z-index:10;"><span class="tag-pill" style="background:rgba(5,5,5,0.8);">${tagText}</span></div>` : '';
     
     const cardHtml = `
-      <div class="prod-card">
-        <div class="prod-img-wrap">
+      <div class="prod-card" style="padding: 0; overflow: hidden;">
+        <div class="prod-img-wrap" style="height: 280px; margin-bottom: 0; border-radius: 0;">
           ${tagHtml}
-          <div class="prod-category">${prod.category}</div>
+          <div class="prod-category" style="z-index:10;">${prod.category}</div>
           <img src="${prod.image_url}" alt="${prod.name}" class="prod-img" loading="lazy">
+          <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 60%; background: linear-gradient(to top, var(--surface) 0%, transparent 100%); z-index: 5;"></div>
         </div>
-        <div class="prod-producer">${prod.manufacturer || prod.producer || ''}</div>
-        <div class="prod-title">${prod.name}</div>
-        <div class="prod-desc">${prod.description}</div>
-        <div class="prod-footer">
-          <div>
-            <div class="prod-weight">Вага/Об'єм: ${prod.weight}</div>
-            <div class="prod-price-val">${prod.price} <span>грн</span></div>
+        <div style="padding: 24px; display: flex; flex-direction: column; flex-grow: 1;">
+          <div class="prod-producer">${prod.manufacturer || prod.producer || ''}</div>
+          <div class="prod-title" style="font-size: 22px;">${prod.name}</div>
+          <div class="prod-desc" style="font-size: 13px;">${prod.description}</div>
+          <div class="prod-footer" style="margin-top: auto;">
+            <div>
+              <div class="prod-weight">Вага/Об'єм: ${prod.weight}</div>
+              <div class="prod-price-val">${prod.price} <span style="font-size:14px;">грн</span></div>
+            </div>
+            <button class="btn-primary cyber-btn" style="padding: 10px 20px;" onclick="addToCart('${prod.id}')">В кошик</button>
           </div>
-          <button class="btn-primary" style="padding: 10px 24px;" onclick="addToCart('${prod.id}')">В кошик</button>
         </div>
       </div>
     `;
@@ -2384,13 +1699,10 @@ function renderProducts(products) {
 }
 
 // --- ЛОГІКА ДИНАМІЧНОГО КОШИКА ---
-
 function addToCart(productId) {
-    // Змінено === на ==
     const prod = allProducts.find(p => p.id == productId);
     if (!prod) return;
     
-    // Змінено === на ==
     const existingItem = cart.find(item => item.product.id == productId);
     if (existingItem) {
         existingItem.quantity += 1;
@@ -2418,7 +1730,6 @@ function showToast(message) {
 }
 
 function changeQuantity(productId, delta) {
-    // Змінено === на ==
     const itemIndex = cart.findIndex(i => i.product.id == productId);
     if (itemIndex === -1) return;
     
@@ -2434,7 +1745,6 @@ function changeQuantity(productId, delta) {
 }
 
 function updateCartUI() {
-    // ЗБЕРІГАЄМО В ПАМ'ЯТЬ БРАУЗЕРА
     localStorage.setItem('gastro_cart', JSON.stringify(cart));
 
     const btn = document.getElementById('cart-float-btn');
@@ -2498,7 +1808,6 @@ async function submitOrder(event) {
     const total = cart.reduce((sum, item) => sum + (Number(item.product.price) * item.quantity), 0);
     const itemsList = cart.map(item => `${item.product.name} (x${item.quantity})`).join(', ');
 
-    // НОВИЙ ФОРМАТ ДАНИХ ДЛЯ SUPABASE
     const orderData = { 
       customer: {
           name: document.getElementById('order-name').value,
@@ -2536,7 +1845,6 @@ async function submitOrder(event) {
 }
 
 // Оновлена функція для Адмінки (Деталізовані замовлення у стилі CRM)
-// Оновлена функція для Адмінки (Деталізовані замовлення у стилі CRM)
 async function loadAdminOrders() {
   const container = document.getElementById('admin-orders-list');
   container.innerHTML = '<p style="color:var(--stone);">Завантаження замовлень...</p>';
@@ -2553,7 +1861,6 @@ async function loadAdminOrders() {
       if (o.status === 'Виконано') statusColor = '#00a8ff'; 
       if (o.status === 'Скасовано') statusColor = '#7f8c8d'; 
 
-      // ЗЧИТУЄМО ДАНІ З НОВИХ КОЛОНОК БАЗИ SUPABASE
       const orderItemsText = o.items || o.order_items || o.product || '';
       const orderPrice = o.total_price || o.price || 0;
       
@@ -2636,7 +1943,7 @@ async function updateOrderStatus(id, newStatus) {
     });
     if (res.ok) {
       showToast(`🔄 Статус змінено на "${newStatus}"`);
-      loadAdminOrders(); // Перезавантажуємо список для оновлення кольорів
+      loadAdminOrders(); 
     }
   } catch (e) { showToast('❌ Помилка оновлення статусу'); }
 }
@@ -2659,7 +1966,7 @@ async function deleteMessage(id) {
         const res = await fetch(`/api/messages/${id}`, { method: 'DELETE' });
         if (res.ok) {
             showToast('✅ Повідомлення видалено');
-            loadAdminMessages(); // Перезавантажуємо список повідомлень, щоб воно зникло з екрана
+            loadAdminMessages(); 
         } else {
             showToast('❌ Помилка при видаленні');
         }
@@ -2722,7 +2029,7 @@ function loginAdmin(e) {
     e.preventDefault();
     if(document.getElementById('admin-password').value === 'admin2026') {
         document.getElementById('admin-login-screen').style.display = 'none';
-        document.getElementById('admin-dashboard-screen').style.display = 'grid'; // grid бо там 2 колонки
+        document.getElementById('admin-dashboard-screen').style.display = 'grid'; 
         loadAdminStats();
     } else {
         document.getElementById('login-error').style.display = 'block';
@@ -2747,7 +2054,7 @@ function switchAdminTab(tabName) {
   if (tabName === 'stats') loadAdminStats();
   if (tabName === 'products') {
     loadAdminProducts();
-    resetProductForm(); // Скидаємо форму до стану "Додати", якщо ми були в режимі редагування
+    resetProductForm(); 
   }
 }
 
@@ -2796,7 +2103,6 @@ async function submitNewProduct(event) {
   const rawTag = document.getElementById('admin-tag').value.trim();
   const fileInput = document.getElementById('admin-file-chooser');
 
-  // Перевірка: якщо це НОВИЙ товар, фото обов'язкове
   if (!editingProductId && (!fileInput.files || fileInput.files.length === 0)) {
      feedback.style.display = 'block';
      feedback.style.color = '#ff6b6b';
@@ -2809,7 +2115,6 @@ async function submitNewProduct(event) {
   btn.disabled = true;
 
   try {
-    // Збираємо всі дані (і текст, і файл) в один об'єкт FormData
     const formData = new FormData();
     formData.append('name', document.getElementById('admin-name').value);
     formData.append('manufacturer', document.getElementById('admin-producer').value);
@@ -2819,20 +2124,17 @@ async function submitNewProduct(event) {
     formData.append('description', document.getElementById('admin-desc').value);
     formData.append('tag', rawTag || '');
     
-    // Додаємо файл, тільки якщо користувач його дійсно обрав
     if (fileInput.files && fileInput.files.length > 0) {
         formData.append('image', fileInput.files[0]);
     }
 
     let response;
     if (editingProductId) {
-      // РЕДАГУВАННЯ
       response = await fetch(`/api/products/${editingProductId}`, {
         method: 'PUT',
-        body: formData // Відправляємо FormData замість JSON
+        body: formData 
       });
     } else {
-      // СТВОРЕННЯ
       response = await fetch('/api/products', {
         method: 'POST',
         body: formData 
@@ -2846,7 +2148,7 @@ async function submitNewProduct(event) {
       
       resetProductForm();
       loadAdminProducts(); 
-      loadProducts(); // Оновлюємо вітрину сайту
+      loadProducts(); 
     } else throw new Error('Помилка сервера');
   } catch (error) {
     feedback.style.display = 'block'; feedback.style.color = '#ff6b6b'; feedback.innerText = 'Помилка при з\'єднанні з сервером.';
@@ -2856,7 +2158,6 @@ async function submitNewProduct(event) {
   }
 }
 
-// Функція завантаження товарів в адмінці
 async function loadAdminProducts() {
   const container = document.getElementById('admin-products-list');
   if (!container) return;
@@ -2885,7 +2186,6 @@ async function loadAdminProducts() {
   } catch (e) { container.innerHTML = '<p style="color:#ff6b6b;">Помилка завантаження.</p>'; }
 }
 
-// Заповнення форми даними обраного товару для редагування
 function editProduct(id) {
   const prod = allProducts.find(p => p.id == id);
   if (!prod) return;
@@ -2898,7 +2198,6 @@ function editProduct(id) {
   document.getElementById('admin-weight').value = prod.weight || '';
   document.getElementById('admin-image').value = prod.image_url || '';
   
-  // ВИПРАВЛЕНО: читаємо tag як звичайний текст із бази
   document.getElementById('admin-tag').value = prod.tag || ''; 
   
   document.getElementById('admin-desc').value = prod.description || '';
@@ -2908,7 +2207,6 @@ function editProduct(id) {
   document.getElementById('admin-product-form').scrollIntoView({ behavior: 'smooth' });
 }
 
-// Скидання форми до початкового стану
 function resetProductForm() {
   editingProductId = null;
   document.getElementById('admin-product-form').reset();
@@ -2918,8 +2216,6 @@ function resetProductForm() {
   document.getElementById('admin-submit-btn').innerText = 'Опублікувати товар';
 }
 
-// Функція видалення товару
-// Функція видалення товару
 async function deleteProduct(id) {
   if (!confirm('Ви впевнені, що хочете назавжди видалити цей товар з бази даних?')) return;
   
@@ -2928,39 +2224,13 @@ async function deleteProduct(id) {
     
     if (res.ok) {
       showToast('🗑️ Товар успішно видалено');
-      loadAdminProducts(); // Оновлюємо список в адмінці
-      loadProducts();      // Оновлюємо вітрину сайту
+      loadAdminProducts(); 
+      loadProducts();     
     } else {
-      // Якщо сервер повернув помилку (наприклад, 500)
       showToast('❌ Сервер відхилив видалення. Перевірте консоль.');
     }
   } catch (e) { 
     showToast('❌ Помилка з\'єднання з сервером'); 
-  }
-}
-
-// --- ФУНКЦІЯ ДИНАМІЧНОЇ СТАТИСТИКИ ГОЛОВНОЇ СТОРІНКИ ---
-async function loadPublicStats() {
-  try {
-    // 1. Отримуємо локації
-    const locRes = await fetch('/api/locations');
-    const locations = await locRes.json();
-    const locElement = document.getElementById('public-stat-locs');
-    if (locElement) locElement.innerText = locations.length;
-
-    // 2. Отримуємо продукти
-    const prodRes = await fetch('/api/products');
-    const products = await prodRes.json();
-    const prodElement = document.getElementById('public-stat-prods');
-    if (prodElement) prodElement.innerText = products.length;
-
-    // 3. ВИПРАВЛЕНО: Вираховуємо унікальних виробників з правильної колонки (manufacturer)
-    const uniqueProducers = [...new Set(products.map(p => p.manufacturer || p.producer))].filter(p => p && p.trim() !== "");
-    const producerElement = document.getElementById('public-stat-producers');
-    if (producerElement) producerElement.innerText = uniqueProducers.length;
-
-  } catch (error) {
-    console.error("Помилка завантаження реальної статистики:", error);
   }
 }
 
@@ -2976,7 +2246,6 @@ async function generateAIDescription() {
     return;
   }
 
-  // Анімація очікування
   descField.value = 'ШІ аналізує продукт та генерує опис... ✨ Зачекайте кілька секунд...';
   descField.disabled = true;
 
@@ -3041,6 +2310,7 @@ async function submitNewLocation(event) {
     setTimeout(() => feedback.style.display = 'none', 5000);
   }
 }
+
 // --- СЕКРЕТНИЙ ВХІД В АДМІНКУ ЗА КОМБІНАЦІЄЮ КЛАВІШ (Ctrl + Shift + Q) ---
 window.addEventListener('keydown', (event) => {
   if (event.ctrlKey && event.shiftKey && event.code === 'KeyQ') {
@@ -3049,6 +2319,7 @@ window.addEventListener('keydown', (event) => {
     showToast('🔑 Активовано прихований вхід для адміністратора');
   }
 });
+
 // --- ЛОГІКА РОБОТИ AI ЧАТ-ГІДА ---
 function toggleAIChat() {
     const chatWindow = document.getElementById('ai-chat-window');
@@ -3063,11 +2334,9 @@ async function sendAIChatMessage() {
     const messageText = inputEl.value.trim();
     if (!messageText) return;
 
-    // Очищаємо інпут і виводимо повідомлення користувача в чат
     inputEl.value = '';
     appendChatMessage(messageText, 'user');
 
-    // Створюємо анімацію очікування (placeholder)
     const messagesContainer = document.getElementById('ai-chat-messages');
     const typingDiv = document.createElement('div');
     typingDiv.className = 'chat-msg ai';
@@ -3085,7 +2354,6 @@ async function sendAIChatMessage() {
 
         const data = await res.json();
         
-        // Видаляємо індикатор очікування
         const placeholder = document.getElementById('ai-chat-typing');
         if (placeholder) placeholder.remove();
 
@@ -3135,7 +2403,6 @@ async function calculateAIRating() {
         const data = await res.json();
         
         if (res.ok && data.rating) {
-            // Перевіряємо, чи ШІ дійсно повернув число
             const ratingNumber = parseFloat(data.rating.replace(',', '.'));
             if(!isNaN(ratingNumber)) {
                 ratingInput.value = ratingNumber;
