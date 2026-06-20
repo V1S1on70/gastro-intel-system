@@ -785,12 +785,16 @@
     </div>
     
     <div class="filters-bar">
-      <button class="filter-btn active" onclick="applyFilter('Всі', this)">Всі</button>
-      <button class="filter-btn" onclick="applyFilter('РЕСТОРАНИ', this)">Ресторани</button>
-      <button class="filter-btn" onclick="applyFilter('КАФЕ ТА БРОВАРНІ', this)">Кафе та броварні</button>
-      <button class="filter-btn" onclick="applyFilter('ФЕРМЕРСЬКІ САДИБИ', this)">Фермерські садиби</button>
-      <button class="filter-btn" onclick="applyFilter('РИНКИ', this)">Ринки</button>
-      <button class="filter-btn" onclick="applyFilter('ВИРОБНИЦТВО', this)">Виробництво</button>
+      <button class="filter-btn active" data-category="all" onclick="filterLocations(event)">Усі локації</button>
+      <button class="filter-btn" data-category="Ресторани" onclick="filterLocations(event)">Ресторани</button>
+      <button class="filter-btn" data-category="Паби та Бари" onclick="filterLocations(event)">Паби та Бари</button>
+      <button class="filter-btn" data-category="Кав'ярні та Кондитерські" onclick="filterLocations(event)">Кав'ярні та Пекарні</button>
+      <button class="filter-btn" data-category="Суші та Азія" onclick="filterLocations(event)">Суші та Азія</button>
+      <button class="filter-btn" data-category="Стріт-фуд та Лаунж" onclick="filterLocations(event)">Стріт-фуд та Лаунж</button>
+      <button class="filter-btn" data-category="Заміський відпочинок" onclick="filterLocations(event)">Заміський відпочинок</button>
+      <button class="filter-btn" data-category="Культура та Відпочинок" onclick="filterLocations(event)">Культура та Відпочинок</button>
+      <button class="filter-btn" data-category="Історичні пам'ятки" onclick="filterLocations(event)">Історичні пам'ятки</button>
+      <button class="filter-btn" data-category="Природні локації" onclick="filterLocations(event)">Природні локації</button>
     </div>
     
     <div class="loc-list">
@@ -1466,20 +1470,29 @@ async function loadLocations() {
   }
 }
 
-function applyFilter(category, btnElement) {
-  document.querySelectorAll('#page-locations .filter-btn').forEach(b => b.classList.remove('active'));
-  btnElement.classList.add('active');
+// 🔍 НОВА ФУНКЦІЯ ФІЛЬТРАЦІЇ ЛОКАЦІЙ (Список + Карта)
+function filterLocations(event) {
+  // 1. Отримуємо категорію з атрибута data-category
+  const category = event.target.getAttribute('data-category');
+  if (!category) return;
 
-  if (category === 'Всі') {
-    renderLocationsList(allLocations);
+  // 2. Робимо натиснуту кнопку "активною" (золотою)
+  const filterContainer = event.target.parentElement;
+  filterContainer.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+
+  // 3. Фільтруємо масив локацій
+  let filteredLocs = [];
+  if (category === 'all') {
+    filteredLocs = allLocations; // Показуємо всі
   } else {
-    const filterCat = category.trim().toUpperCase();
-    const filteredData = allLocations.filter(loc => {
-        const dbCat = (loc.category || '').trim().toUpperCase();
-        return dbCat === filterCat;
-    });
-    renderLocationsList(filteredData);
+    // Шукаємо точний збіг категорії
+    filteredLocs = allLocations.filter(loc => loc.category === category);
   }
+
+  // 4. Оновлюємо інтерфейс (перемальовуємо список і маркери)
+  renderLocationsList(filteredLocs);
+  renderMap(filteredLocs);
 }
 
 // --- РЕНДЕР СПИСКУ ЛОКАЦІЙ (Виправлено клік) ---
