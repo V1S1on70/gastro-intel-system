@@ -1241,7 +1241,7 @@
           <div class="jarvis-data-row"><span>Координати:</span> <span id="jarvis-coords">...</span></div>
           <div class="jarvis-desc" id="jarvis-desc">Детальний опис...</div>
           <div style="display:flex; gap:16px; margin-top:16px;">
-            <button class="btn-primary" style="flex:1; justify-content:center;" onclick="showToast('📍 Маршрут будується...')">Побудувати маршрут</button>
+            <button class="btn-primary" id="jarvis-route-btn" style="flex:1; justify-content:center;">Побудувати маршрут</button>
             <button class="btn-outline" style="flex:1; justify-content:center;" onclick="closeJarvisModal()">Закрити вікно</button>
           </div>
         </div>
@@ -1357,11 +1357,7 @@ async function loadPublicStats() {
 function openJarvisModal(loc) {
   document.getElementById('jarvis-title').innerText = loc.name;
   document.getElementById('jarvis-rating').innerText = loc.ai_rating || 'N/A';
-  document.getElementById('jarvis-cat').innerText = loc.category || 'Не вказано';
-  document.getElementById('jarvis-city').innerText = loc.city || 'Не вказано';
-  document.getElementById('jarvis-price').innerText = loc.price_range || 'Уточнюється';
-  document.getElementById('jarvis-coords').innerText = `${parseFloat(loc.latitude).toFixed(4)}°, ${parseFloat(loc.longitude).toFixed(4)}°`;
-  document.getElementById('jarvis-desc').innerText = loc.description || 'Детальна інформація відсутня...';
+  // ... інші поля ...
   
   const placeholders = [
     'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&q=80&w=1000',
@@ -1369,6 +1365,14 @@ function openJarvisModal(loc) {
   ];
   document.getElementById('jarvis-img').src = loc.image_url || placeholders[Math.floor(Math.random() * placeholders.length)];
   
+  // ДОДАЄМО СЮДИ ЛОГІКУ КНОПКИ
+  const routeBtn = document.getElementById('jarvis-route-btn');
+  if (routeBtn) {
+    routeBtn.onclick = () => {
+      window.open(`https://www.google.com/maps/dir/?api=1&destination=${loc.latitude},${loc.longitude}`, '_blank');
+    };
+  }
+
   document.getElementById('jarvis-modal').classList.add('active');
 }
 
