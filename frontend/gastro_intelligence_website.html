@@ -605,6 +605,20 @@
     box-shadow: 0 0 15px rgba(212, 175, 55, 0.05) !important;
     border-color: rgba(212, 175, 55, 0.4) !important;
   }
+  /* ДОДАТИ В КІНЕЦЬ ТЕГУ <style> */
+  .prod-card, .loc-card, .feat-card, .msg-card {
+    /* Вимикаємо "важкі" ефекти на ПК для стабільності */
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    /* Допомагаємо браузеру зрозуміти, що це статичний елемент */
+    will-change: transform;
+    backface-visibility: hidden;
+  }
+  
+  /* Зменшуємо навантаження при скролі */
+  body {
+    overflow-x: hidden;
+  }
 </style>
 
 <div id="gastro-app">
@@ -1416,23 +1430,15 @@ function openJarvisModalById(id) {
 async function loadLocations() {
   try {
     const response = await fetch('/api/locations');
-    let dbLocations = [];
-    
-    // Якщо база даних відповіла без помилок - беремо дані
-    if (response.ok) {
-        dbLocations = await response.json();
-    } else {
-        console.warn("⚠️ Сервер БД недоступний. Завантажено лише демо-локації.");
-    }
-    
-    // Зліплюємо фейкові + реальні (навіть якщо реальних 0)
-    allLocations = [...mockLocations, ...dbLocations];
-    
+    if (!response.ok) throw new Error('БД не відповідає'); // Перевірка статусу
+    allLocations = await response.json();
     renderLocationsList(allLocations);
     renderMap(allLocations);
-    renderFeaturedLocations(allLocations);
   } catch (error) {
-    console.error("Помилка завантаження локацій:", error);
+    console.error("Помилка БД:", error);
+    allLocations = mockLocations; // Використовуємо фейкові дані, щоб не лагало
+    renderLocationsList(allLocations);
+    renderMap(allLocations);
   }
 }
 
@@ -1648,22 +1654,13 @@ function selectMapLocationById(id) {
 async function loadProducts() {
   try {
     const response = await fetch('/api/products');
-    let dbProducts = [];
-    
-    // Якщо база даних відповіла без помилок - беремо дані
-    if (response.ok) {
-        dbProducts = await response.json();
-    } else {
-        console.warn("⚠️ Сервер БД недоступний. Завантажено лише демо-товари.");
-    }
-    
-    // Зліплюємо фейкові + реальні (навіть якщо реальних 0)
-    allProducts = [...mockProducts, ...dbProducts];
-    
-    populateProducersList();
+    if (!response.ok) throw new Error('БД не відповідає');
+    allProducts = await response.json();
     renderProducts(allProducts);
-  } catch (error) { 
-    console.error("Помилка завантаження товарів:", error); 
+  } catch (error) {
+    console.error("Помилка БД:", error);
+    allProducts = mockProducts; // Використовуємо фейкові дані
+    renderProducts(allProducts);
   }
 }
 
