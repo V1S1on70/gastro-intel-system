@@ -1462,11 +1462,13 @@ async function loadLocations() {
     allLocations = await response.json();
     renderLocationsList(allLocations);
     renderMap(allLocations);
+    renderFeaturedLocations(allLocations); // 🚀 ДОДАНО: Виклик відмальовки Топ-локацій
   } catch (error) {
     console.error("Помилка БД:", error);
     allLocations = mockLocations; // Використовуємо фейкові дані, щоб не лагало
     renderLocationsList(allLocations);
     renderMap(allLocations);
+    renderFeaturedLocations(allLocations); // 🚀 ДОДАНО: Виклик для фейкових даних
   }
 }
 
@@ -1537,8 +1539,8 @@ function renderLocationsList(locations) {
 
 // --- 🌟 РЕНДЕР ЛОКАЦІЙ ТИЖНЯ (АВТОМАТИЧНИЙ ТОП-3) ---
 function renderFeaturedLocations(locations) {
-  // Знайди свій контейнер (заміни '.featured-grid', якщо у твоєму HTML цей блок має інший клас чи ID)
-  const container = document.querySelector('.featured-grid') || document.getElementById('featured-locations'); 
+  // 🚀 ВИПРАВЛЕНО: Тепер шукаємо точний ID з твого HTML
+  const container = document.getElementById('featured-locations-grid'); 
   if (!container) return;
   
   container.innerHTML = ''; // Очищаємо блок перед малюванням
@@ -1546,12 +1548,12 @@ function renderFeaturedLocations(locations) {
   // 🏆 НОВА ЛОГІКА: Вибираємо ТОП-3 локації з найвищим рейтингом або крутими тегами
   const topLocations = locations
     .filter(loc => parseFloat(loc.ai_rating) >= 9.7 || ['Must-Visit', 'Хіт', 'Преміум'].includes(loc.tag))
-    .sort((a, b) => parseFloat(b.ai_rating) - parseFloat(a.ai_rating)) // Сортуємо від найбільшого рейтингу до найменшого
+    .sort((a, b) => parseFloat(b.ai_rating) - parseFloat(a.ai_rating)) // Сортуємо від найбільшого до найменшого
     .slice(0, 3); // Беремо рівно 3 найкращі локації
 
-  // Якщо база ще порожня, виводимо заглушку
+  // Якщо база ще порожня або нічого не підійшло
   if (topLocations.length === 0) {
-     container.innerHTML = '<p style="color:var(--stone); padding: 20px;">Локації формуються...</p>';
+     container.innerHTML = '<p style="color:var(--stone); padding: 20px; grid-column: 1/-1; text-align: center;">Найкращі локації тижня формуються...</p>';
      return;
   }
 
@@ -1559,14 +1561,14 @@ function renderFeaturedLocations(locations) {
   topLocations.forEach(loc => {
     // Використовуємо кінематографічний дизайн картки та викликаємо J.A.R.V.I.S. по кліку
     const cardHtml = `
-      <div class="feat-card" onclick="openJarvisModalById('${loc.id}')" style="cursor: pointer; transition: transform 0.3s ease;">
+      <div class="feat-card" onclick="openJarvisModalById('${loc.id}')" style="cursor: pointer; transition: transform 0.3s ease; padding: 20px;">
         <div class="feat-image-wrapper" style="height: 250px; overflow: hidden; position: relative; border-radius: 8px;">
           <img src="${loc.image_url}" alt="${loc.name}" style="width: 100%; height: 100%; object-fit: cover; transition: 0.5s;">
           <div style="position: absolute; top: 12px; right: 12px; background: rgba(10,10,10,0.85); border: 1px solid var(--gold); color: var(--gold); padding: 4px 8px; font-size: 13px; border-radius: 4px; font-weight: bold; box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);">
             ${loc.ai_rating} ★
           </div>
         </div>
-        <div style="padding: 20px 0;">
+        <div style="padding: 20px 0 0 0;">
           <div style="font-size: 11px; color: var(--gold); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 8px;">${loc.tag || loc.category}</div>
           <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 26px; color: var(--ivory); margin-bottom: 10px; line-height: 1.1;">${loc.name}</h3>
           <p style="color: var(--stone); font-size: 14px; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${loc.description}</p>
