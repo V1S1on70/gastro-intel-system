@@ -493,14 +493,28 @@
   .jarvis-desc { font-size: 15px; line-height: 1.8; color: var(--stone); flex-grow: 1; overflow-y: auto; padding-right: 12px; margin-bottom: 16px;}
   @keyframes pulseText { 0% { opacity: 0.5; } 50% { opacity: 1; text-shadow: 0 0 8px var(--gold); } 100% { opacity: 0.5; } }
 
-  /* 🎯 КІНЕМАТОГРАФІЧНИЙ ПОПАП НА КАРТІ */
+/* 🎯 КІНЕМАТОГРАФІЧНИЙ ПОПАП НА КАРТІ */
   .leaflet-popup-content-wrapper { background: rgba(10, 10, 10, 0.95); border: 1px solid var(--gold); border-radius: 4px; box-shadow: 0 0 20px rgba(212, 175, 55, 0.2); }
   .leaflet-popup-tip { background: rgba(10, 10, 10, 0.95); border: 1px solid var(--gold); }
   .leaflet-popup-close-button { display: none !important; }
+  
+  /* ВИПРАВЛЕНО: Обмеження ширини попапа та перенос тексту */
+  .leaflet-popup-content {
+    max-width: 250px !important;
+    margin: 14px !important;
+    word-wrap: break-word;
+  }
+  .leaflet-popup-content strong {
+    display: block;
+    white-space: normal; /* Дозволяє перенос довгого тексту на новий рядок */
+    font-size: 18px !important;
+    line-height: 1.2;
+  }
+
   .cyber-popup-btn {
     background: rgba(212, 175, 55, 0.1); border: 1px solid var(--gold); color: var(--gold);
     width: 100%; padding: 8px; font-family: 'Inter', sans-serif; font-size: 10px; font-weight: bold; letter-spacing: 0.2em;
-    cursor: pointer; margin-top: 12px; transition: 0.3s;
+    cursor: pointer; margin-top: 14px; transition: 0.3s;
   }
   .cyber-popup-btn:hover { background: var(--gold); color: #000; box-shadow: 0 0 15px var(--gold); }
 
@@ -561,6 +575,9 @@
     /* 9. Кнопки ставимо одну під одною */
     .jarvis-info-box > div:last-child { flex-direction: column; gap: 12px; }
     .jarvis-info-box button { width: 100%; padding: 16px; }
+    /* Додай це всередину @media (max-width: 768px) */
+    .leaflet-popup-content { max-width: 180px !important; }
+    .leaflet-popup-content strong { font-size: 16px !important; }
   }
 </style>
 
@@ -2081,13 +2098,21 @@ async function loadAdminMessages() {
     
     container.innerHTML = '';
     msgs.reverse().forEach(m => {
+      // БРОНЕБІЙНИЙ ЧИТАЧ: Шукаємо правильну колонку бази
+      const dateStr = m.created_at || m.date;
+      const safeDate = dateStr ? new Date(dateStr).toLocaleString('uk-UA') : 'Дата невідома';
+      const typeStr = m.type || m.request_type || 'Повідомлення';
+      const phoneStr = m.phone || m.client_phone || 'Не вказано';
+      const nameStr = m.name || m.client_name || 'Анонім';
+      const businessStr = m.business || m.company || 'Без назви компанії';
+      
       container.innerHTML += `
         <div class="msg-card">
-          <div class="msg-header"><span>📅 ${new Date(m.date).toLocaleString('uk-UA')} | 🏷️ ${m.type}</span><span>👤 ${m.name} (${m.phone})</span></div>
-          <div class="msg-title">${m.business || 'Без назви'}</div>
-          <p style="color:var(--stone-light);">${m.message}</p>
+          <div class="msg-header"><span>📅 ${safeDate} | 🏷️ ${typeStr}</span><span>👤 ${nameStr} (${phoneStr})</span></div>
+          <div class="msg-title">${businessStr}</div>
+          <p style="color:var(--stone-light);">${m.message || ''}</p>
           <div style="font-size: 11px; color:var(--stone); margin-top:16px; display:flex; justify-content:space-between; align-items:center; border-top: 0.5px solid rgba(138,130,120,0.1); padding-top: 12px;">
-            <span>📧 Email: ${m.email}</span>
+            <span>📧 Email: ${m.email || 'Не вказано'}</span>
             <button class="btn-outline" style="padding: 6px 14px; font-size: 10px; color: #ff6b6b; border-color: rgba(255,107,107,0.2);" onclick="deleteMessage('${m.id}')">🗑️ Видалити</button>
           </div>
         </div>`;
