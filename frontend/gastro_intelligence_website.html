@@ -1535,50 +1535,45 @@ function renderLocationsList(locations) {
   });
 }
 
+// --- 🌟 РЕНДЕР ЛОКАЦІЙ ТИЖНЯ (АВТОМАТИЧНИЙ ТОП-3) ---
 function renderFeaturedLocations(locations) {
-  const gridContainer = document.getElementById('featured-locations-grid');
-  if (!gridContainer) return;
-  gridContainer.innerHTML = '';
+  // Знайди свій контейнер (заміни '.featured-grid', якщо у твоєму HTML цей блок має інший клас чи ID)
+  const container = document.querySelector('.featured-grid') || document.getElementById('featured-locations'); 
+  if (!container) return;
   
-  const topLocations = locations.slice(0, 5);
-  topLocations.forEach((loc, index) => {
-    const rankNum = String(index + 1).padStart(2, '0');
-    const isFeatured = index === 0; 
-    const badgeText = loc.tags && loc.tags.length > 0 ? loc.tags[0] : 'Рекомендація';
+  container.innerHTML = ''; // Очищаємо блок перед малюванням
 
-    let cardHtml = '';
-    if (isFeatured) {
-      cardHtml = `
-        <div class="loc-card featured" onclick="showPage('locations')">
-          <div class="loc-card-num">${rankNum}</div>
-          <div class="loc-card-badge">${badgeText}</div>
-          <div class="loc-card-name">${loc.name}</div>
-          <div class="loc-card-desc">${loc.description}</div>
-          <div class="loc-score">
-            <div class="loc-score-num">${loc.ai_rating}</div>
-            <div class="loc-score-label">/ 10<br>AI-рейтинг</div>
-          </div>
-          <div class="loc-card-meta">
-            <div class="loc-meta-item"><i class="ti ti-map-pin" aria-hidden="true"></i> ${loc.city}</div>
-            <div class="loc-meta-item"><i class="ti ti-currency-hryvnia" aria-hidden="true"></i> ${loc.price_range}</div>
-          </div>
-        </div>
-      `;
-    } else {
-      cardHtml = `
-        <div class="loc-card" onclick="showPage('locations')">
-          <div class="loc-card-num">${rankNum}</div>
-          <div class="loc-card-badge">${badgeText}</div>
-          <div class="loc-card-name">${loc.name}</div>
-          <div class="loc-card-desc" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${loc.description}</div>
-          <div class="loc-card-meta">
-            <div class="loc-meta-item"><i class="ti ti-map-pin" aria-hidden="true"></i> ${loc.city}</div>
-            <div class="loc-meta-item"><i class="ti ti-star" aria-hidden="true"></i> ${loc.ai_rating}</div>
+  // 🏆 НОВА ЛОГІКА: Вибираємо ТОП-3 локації з найвищим рейтингом або крутими тегами
+  const topLocations = locations
+    .filter(loc => parseFloat(loc.ai_rating) >= 9.7 || ['Must-Visit', 'Хіт', 'Преміум'].includes(loc.tag))
+    .sort((a, b) => parseFloat(b.ai_rating) - parseFloat(a.ai_rating)) // Сортуємо від найбільшого рейтингу до найменшого
+    .slice(0, 3); // Беремо рівно 3 найкращі локації
+
+  // Якщо база ще порожня, виводимо заглушку
+  if (topLocations.length === 0) {
+     container.innerHTML = '<p style="color:var(--stone); padding: 20px;">Локації формуються...</p>';
+     return;
+  }
+
+  // Малюємо картки
+  topLocations.forEach(loc => {
+    // Використовуємо кінематографічний дизайн картки та викликаємо J.A.R.V.I.S. по кліку
+    const cardHtml = `
+      <div class="feat-card" onclick="openJarvisModalById('${loc.id}')" style="cursor: pointer; transition: transform 0.3s ease;">
+        <div class="feat-image-wrapper" style="height: 250px; overflow: hidden; position: relative; border-radius: 8px;">
+          <img src="${loc.image_url}" alt="${loc.name}" style="width: 100%; height: 100%; object-fit: cover; transition: 0.5s;">
+          <div style="position: absolute; top: 12px; right: 12px; background: rgba(10,10,10,0.85); border: 1px solid var(--gold); color: var(--gold); padding: 4px 8px; font-size: 13px; border-radius: 4px; font-weight: bold; box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);">
+            ${loc.ai_rating} ★
           </div>
         </div>
-      `;
-    }
-    gridContainer.insertAdjacentHTML('beforeend', cardHtml);
+        <div style="padding: 20px 0;">
+          <div style="font-size: 11px; color: var(--gold); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 8px;">${loc.tag || loc.category}</div>
+          <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 26px; color: var(--ivory); margin-bottom: 10px; line-height: 1.1;">${loc.name}</h3>
+          <p style="color: var(--stone); font-size: 14px; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${loc.description}</p>
+        </div>
+      </div>
+    `;
+    container.insertAdjacentHTML('beforeend', cardHtml);
   });
 }
 
