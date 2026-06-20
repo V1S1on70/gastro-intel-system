@@ -579,6 +579,32 @@
     .leaflet-popup-content { max-width: 180px !important; }
     .leaflet-popup-content strong { font-size: 16px !important; }
   }
+  /* =========================================
+     🚀 ОПТИМІЗАЦІЯ АДМІН-ПАНЕЛІ (УСУНЕННЯ ЛАГІВ СКРОЛУ)
+     ========================================= */
+  
+  /* Знімаємо ефект скла з панелей адмінки */
+  .admin-sidebar, .admin-panel-content {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: #0a0a0a !important; /* Суцільний темний колір */
+  }
+
+  /* Робимо картки замовлень/товарів легкими для відеокарти */
+  .msg-card {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    will-change: auto !important; /* Звільняємо пам'ять відеокарти */
+    background: #111111 !important; /* Непрозорий фон */
+    transform: none !important; /* Вимикаємо 3D-підготовку */
+  }
+  
+  /* Вимикаємо підстрибування при наведенні миші в адмінці (там воно зайве) */
+  .msg-card:hover {
+    transform: none !important; 
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.05) !important;
+    border-color: rgba(212, 175, 55, 0.4) !important;
+  }
 </style>
 
 <div id="gastro-app">
