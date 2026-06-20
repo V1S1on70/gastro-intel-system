@@ -46,30 +46,112 @@ async function sendTelegramNotification(text) {
 }
 
 // ==========================================
-// 📍 МАРШРУТИ ЛОКАЦІЙ
+// 📍 МАРШРУТИ ЛОКАЦІЙ (Оновлено: додано підтримку фото)
 // ==========================================
 app.get('/api/locations', async (req, res) => {
-    const { data, error } = await supabase.from('locations').select('*');
+    const { data, error } = await supabase.from('locations').select('*').order('id', { ascending: false });
     if (error) return res.status(500).json({ error: "Помилка сервера", details: error.message });
     res.json(data);
 });
 
-app.post('/api/locations', async (req, res) => {
-    const { error } = await supabase.from('locations').insert([req.body]);
-    if (error) return res.status(500).json({ error: "Помилка збереження", details: error.message });
-    res.status(200).json({ success: true });
+// СТВОРЕННЯ ЛОКАЦІЇ З ФОТО
+app.post('/api/locations', upload.single('image'), async (req, res) => {
+    try {
+        const { name, category, city, latitude, longitude, ai_rating, price_range, description, tag } = req.body;
+        let imageUrl = ''; // Сюди запишемо посилання на фото
+
+        // Якщо користувач прикріпив файл фотографії
+        if (req.file) {
+            const file = req.file;
+            const fileName = `${Date.now()}-${file.originalname.replace(/\s+/g, '_')}`;
+            const { error: uploadError } = await supabase.storage
+                .from('locations') // Завантажуємо у нове сховище "locations"
+                .upload(fileName, file.buffer, { contentType: file.mimetype });
+
+            if (uploadError) throw uploadError;
+
+            // Отримуємо публічне посилання на фото
+            const { data: urlData } = supabase.storage.from('locations').getPublicUrl(fileName);
+            imageUrl = urlData.publicUrl;
+        }
+
+        const { error: dbError } = await supabase
+            .from('locations')
+            .insert([{
+                name,
+                category,
+                city,
+                latitude: parseFloat(latitude),
+                longitude: parseFloat(longitude),
+                ai_rating: parseFloat(ai_rating) || 0,
+                price_range,
+                description,
+                tag: tag || '',
+                image_url: imageUrl
+            }]);
+
+        if (dbError) throw dbError;
+        res.status(200).json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Помилка збереження", details: err.message });
+    }
 });
 
-app.put('/api/locations/:id', async (req, res) => {
-    const { error } = await supabase.from('locations').update(req.body).eq('id', req.params.id);
-    if (error) return res.status(500).send('Помилка оновлення');
-    res.send({ success: true });
+// РЕДАГУВАННЯ ЛОКАЦІЇ З ФОТО
+app.put('/api/locations/:id', upload.single('image'), async (req, res) => {
+    try {
+        const { name, category, city, latitude, longitude, ai_rating, price_range, description, tag } = req.body;
+
+        let updateData = {
+            name,
+            category,
+            city,
+            latitude: parseFloat(latitude),
+            longitude: parseFloat(longitude),
+            ai_rating: parseFloat(ai_rating) || 0,
+            price_range,
+            description,
+            tag: tag || ''
+        };
+
+        // Якщо обрали НОВЕ фото під час редагування
+        if (req.file) {
+            const file = req.file;
+            const fileName = `${Date.now()}-${file.originalname.replace(/\s+/g, '_')}`;
+            const { error: uploadError } = await supabase.storage
+                .from('locations')
+                .upload(fileName, file.buffer, { contentType: file.mimetype });
+
+            if (uploadError) throw uploadError;
+
+            const { data: urlData } = supabase.storage.from('locations').getPublicUrl(fileName);
+            updateData.image_url = urlData.publicUrl; // Оновлюємо посилання
+        }
+
+        const { error: dbError } = await supabase
+            .from('locations')
+            .update(updateData)
+            .eq('id', req.params.id);
+
+        if (dbError) throw dbError;
+        res.status(200).json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Помилка оновлення", details: err.message });
+    }
 });
 
 app.delete('/api/locations/:id', async (req, res) => {
-    const { error } = await supabase.from('locations').delete().eq('id', req.params.id);
-    if (error) return res.status(500).send('Помилка видалення');
-    res.send({ success: true });
+    try {
+        const locId = parseInt(req.params.id);
+        const { error } = await supabase.from('locations').delete().eq('id', locId);
+        if (error) throw error;
+        res.status(200).json({ success: true });
+    } catch (err) {
+        console.error("❌ Серверна помилка видалення:", err.message);
+        res.status(500).json({ error: "Помилка видалення", details: err.message });
+    }
 });
 
 // ==========================================
