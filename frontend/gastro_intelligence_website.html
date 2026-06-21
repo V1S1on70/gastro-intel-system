@@ -2368,24 +2368,6 @@ async function submitNewLocation(event) {
   }
 }
 
-  btn.innerText = 'Збереження...';
-  try {
-    const response = await fetch('/api/locations', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(locData)
-    });
-    if (response.ok) {
-      feedback.style.display = 'block'; feedback.style.color = 'var(--gold)'; feedback.innerText = 'Локацію додано на карту!';
-      document.getElementById('admin-location-form').reset();
-      loadLocations();
-    } else throw new Error('Помилка сервера');
-  } catch (error) {
-    feedback.style.display = 'block'; feedback.style.color = '#ff6b6b'; feedback.innerText = 'Помилка збереження.';
-  } finally {
-    btn.innerText = 'Опублікувати локацію';
-    setTimeout(() => feedback.style.display = 'none', 5000);
-  }
-}
-
 // --- СЕКРЕТНИЙ ВХІД В АДМІНКУ ЗА КОМБІНАЦІЄЮ КЛАВІШ (Ctrl + Shift + Q) ---
 window.addEventListener('keydown', (event) => {
   if (event.ctrlKey && event.shiftKey && event.code === 'KeyQ') {
