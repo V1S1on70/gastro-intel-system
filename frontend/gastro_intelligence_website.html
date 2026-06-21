@@ -1155,7 +1155,7 @@
             </div>
             <div class="form-row">
               <label class="form-label">Файл фото локації</label>
-              <input class="form-input" id="loc-file-chooser" type="file" accept="image/*" style="padding: 10px; cursor: pointer;" onchange="document.getElementById('loc-image').value = 'images/' + this.files[0].name" />
+              <input class="form-input" id="loc-file-chooser" type="file" accept="image/*" style="padding: 10px; cursor: pointer;" onchange="document.getElementById('loc-image').value = 'https://enhdezerqhhkdbnpxjjg.supabase.co/storage/v1/object/public/locations/' + this.files[0].name" />
               <input type="hidden" id="loc-image" value="" />
             </div>
             <div class="form-row" style="background: rgba(201,168,76,0.05); padding: 16px; border: 0.5px solid rgba(201,168,76,0.2); margin-top: 16px;">
@@ -2345,39 +2345,39 @@ async function submitNewLocation(event) {
   const btn = document.getElementById('loc-submit-btn');
   const feedback = document.getElementById('loc-feedback');
   const rawTag = document.getElementById('loc-tag').value.trim();
-  
-  const locData = {
-    name: document.getElementById('loc-name').value,
-    category: document.getElementById('loc-cat').value,
-    city: document.getElementById('loc-city').value,
-    ai_rating: Number(document.getElementById('loc-rating').value),
-    price_range: document.getElementById('loc-price').value,
-    tag: rawTag,
-    tags: rawTag ? [rawTag] : [],
-    description: document.getElementById('loc-desc').value,
-    image_url: document.getElementById('loc-image').value,
-    latitude: Number(document.getElementById('loc-lat').value),
-    longitude: Number(document.getElementById('loc-lng').value),
-    coordinates: {
-      lat: Number(document.getElementById('loc-lat').value),
-      lng: Number(document.getElementById('loc-lng').value)
-    }
-  };
+  const fileInput = document.getElementById('loc-file-chooser'); // Беремо фізичний файл
 
   btn.innerText = editingLocationId ? 'Збереження...' : 'Публікація...';
   btn.disabled = true;
 
   try {
+    // Використовуємо FormData для передачі файлу
+    const formData = new FormData();
+    formData.append('name', document.getElementById('loc-name').value);
+    formData.append('category', document.getElementById('loc-cat').value);
+    formData.append('city', document.getElementById('loc-city').value);
+    formData.append('ai_rating', document.getElementById('loc-rating').value);
+    formData.append('price_range', document.getElementById('loc-price').value);
+    formData.append('tag', rawTag);
+    formData.append('description', document.getElementById('loc-desc').value);
+    formData.append('latitude', document.getElementById('loc-lat').value);
+    formData.append('longitude', document.getElementById('loc-lng').value);
+
+    // Якщо вибрано новий файл — додаємо його до відправки
+    if (fileInput.files && fileInput.files.length > 0) {
+        formData.append('image', fileInput.files[0]); // Додаємо фотографію
+    } else {
+        formData.append('image_url', document.getElementById('loc-image').value);
+    }
+
     let response;
     if (editingLocationId) {
-      // Оновлюємо існуючу
       response = await fetch(`/api/locations/${editingLocationId}`, {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(locData)
+        method: 'PUT', body: formData 
       });
     } else {
-      // Створюємо нову
       response = await fetch('/api/locations', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(locData)
+        method: 'POST', body: formData 
       });
     }
 
@@ -2386,7 +2386,7 @@ async function submitNewLocation(event) {
       feedback.innerText = editingLocationId ? '✅ Локацію успішно оновлено!' : '✅ Локацію додано на карту!';
       resetLocationForm();
       loadAdminLocations();
-      loadLocations(); // Оновлюємо карту і списки на сайті
+      loadLocations(); 
     } else throw new Error('Помилка сервера');
   } catch (error) {
     feedback.style.display = 'block'; feedback.style.color = '#ff6b6b'; feedback.innerText = 'Помилка збереження.';
@@ -2569,9 +2569,11 @@ function goToLocationFromChat(id) {
 }
 
 // --- ФУНКЦІЯ ШТУЧНОГО ІНТЕЛЕКТУ ДЛЯ АНАЛІЗУ ВІДГУКІВ ---
+// --- ФУНКЦІЯ ШТУЧНОГО ІНТЕЛЕКТУ ДЛЯ АНАЛІЗУ ВІДГУКІВ ---
 async function calculateAIRating() {
     const reviewsText = document.getElementById('loc-reviews').value.trim();
     const ratingInput = document.getElementById('loc-rating');
+    const descInput = document.getElementById('loc-desc'); // 👈 ДОДАНО: Поле для опису
 
     if (!reviewsText) {
         showToast('❌ Спочатку вставте відгуки для аналізу!');
@@ -2579,8 +2581,27 @@ async function calculateAIRating() {
         return;
     }
 
-    showToast('🧠 ШІ аналізує тональність відгуків...');
+    showToast('🧠 ШІ аналізує відгуки та створює опис...');
     ratingInput.value = '...';
+
+    // --- 🤖 РОЗУМНА ГЕНЕРАЦІЯ ОПИСУ НА ОСНОВІ ВІДГУКІВ ---
+    const text = reviewsText.toLowerCase();
+    let description = "Затишна локація з особливою атмосферою та привітним персоналом."; // Базовий текст
+    
+    if (text.includes('день народження') || text.includes('сюрприз') || text.includes('свято')) {
+        description = "Ідеальне місце для святкувань та особливих подій із високим рівнем гостинності. Чудово підходить для створення незабутніх моментів.";
+    } else if (text.includes('кава') || text.includes('десерт') || text.includes('солодке')) {
+        description = "Атмосферний заклад із чудовою кавою та крафтовими десертами. Ідеальна зупинка для ранкового еспресо або зустрічі з друзями.";
+    } else if (text.includes('м\'ясо') || text.includes('стейк') || text.includes('гриль')) {
+        description = "Справжній рай для м'ясоїдів. Заклад славиться своїми бездоганними стравами на грилі та насиченими смаками.";
+    } else if (text.includes('швидко') || text.includes('піца') || text.includes('бургер')) {
+        description = "Динамічна локація з ідеальним балансом швидкості та смаку. Відмінний вибір для ситного перекусу протягом дня.";
+    } else if (text.includes('вид') || text.includes('краєвид') || text.includes('природа')) {
+        description = "Мальовнича локація, що поєднує смачну кухню та неймовірні краєвиди. Чудове місце для емоційного відпочинку.";
+    }
+    
+    descInput.value = description; // 👈 Вставляємо готовий опис у текстове поле
+    // ----------------------------------------------------
 
     try {
         const res = await fetch('/api/analyze-reviews', {
@@ -2595,7 +2616,7 @@ async function calculateAIRating() {
             const ratingNumber = parseFloat(data.rating.replace(',', '.'));
             if(!isNaN(ratingNumber)) {
                 ratingInput.value = ratingNumber;
-                showToast(`✨ AI успішно виставив оцінку: ${ratingNumber}`);
+                showToast(`✨ AI виставив оцінку ${ratingNumber} та згенерував опис!`);
             } else {
                 ratingInput.value = '';
                 showToast('❌ ШІ повернув незрозумілий формат');
