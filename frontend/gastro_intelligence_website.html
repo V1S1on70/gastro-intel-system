@@ -1127,7 +1127,7 @@
         </div>
 
         <div class="admin-tab-pane" id="admin-tab-locations">
-          <h2 style="font-family:'Cormorant Garamond', serif; font-size:28px; margin-bottom:24px; color:var(--gold);"><i class="ti ti-map-pin-plus" style="vertical-align: middle; margin-right: 8px;"></i> Додати нову локацію</h2>
+          <h2 id="admin-location-form-title" style="font-family:'Cormorant Garamond', serif; font-size:28px; margin-bottom:24px; color:var(--gold);"><i class="ti ti-map-pin-plus" style="vertical-align: middle; margin-right: 8px;"></i> Додати нову локацію</h2>
           <form class="contact-form" id="admin-location-form" onsubmit="submitNewLocation(event)">
             <div class="form-row" style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
               <div><label class="form-label">Назва закладу/місця</label><input class="form-input" id="loc-name" type="text" required /></div>
@@ -1173,6 +1173,9 @@
             <button type="submit" class="btn-primary" id="loc-submit-btn" style="width:100%; padding:14px;">Опублікувати локацію</button>
             <div id="loc-feedback" style="margin-top:16px; text-align:center; display:none; font-size:12px;"></div>
           </form>
+          <div class="gold-line" style="margin: 40px 0 24px;"></div>
+          <h2 style="font-family:'Cormorant Garamond', serif; font-size:28px; margin-bottom:24px; color:var(--gold);">Існуючі локації на карті</h2>
+          <div id="admin-locations-list"></div>
         </div>
 
         <div class="admin-tab-pane" id="admin-tab-messages">
@@ -1310,7 +1313,9 @@ window.addEventListener('popstate', (event) => {
 let editingProductId = null; 
 let allLocations = []; 
 let allProducts = [];
+let editingLocationId = null; // 🚀 ДОДАНО: Слідкує, чи ми редагуємо локацію
 let cart = JSON.parse(localStorage.getItem('gastro_cart')) || [];
+
 
 // 🤖 ФЕЙКОВІ КІНЕМАТОГРАФІЧНІ ДАНІ (Для тесту дизайну Тоні Старка)
 const mockLocations = [
@@ -2103,6 +2108,11 @@ function switchAdminTab(tabName) {
     loadAdminProducts();
     resetProductForm(); 
   }
+  // 🚀 ДОДАНО: Завантаження списку локацій при відкритті вкладки
+  if (tabName === 'locations') {
+    loadAdminLocations();
+    resetLocationForm();
+  }
 }
 
 async function loadAdminStats() {
@@ -2328,6 +2338,8 @@ async function generateAIDescription() {
   }
 }
 
+// --- 📍 ЛОГІКА УПРАВЛІННЯ ЛОКАЦІЯМИ (ДОДАВАННЯ / РЕДАГУВАННЯ / ВИДАЛЕННЯ) ---
+
 async function submitNewLocation(event) {
   event.preventDefault();
   const btn = document.getElementById('loc-submit-btn');
@@ -2340,31 +2352,122 @@ async function submitNewLocation(event) {
     city: document.getElementById('loc-city').value,
     ai_rating: Number(document.getElementById('loc-rating').value),
     price_range: document.getElementById('loc-price').value,
+    tag: rawTag,
     tags: rawTag ? [rawTag] : [],
     description: document.getElementById('loc-desc').value,
-    image_url: document.getElementById('loc-image').value, // 🚀 ОСЬ ТЕ ЩО БУЛО ВІДСУТНЄ: Відправляємо фото в базу!
+    image_url: document.getElementById('loc-image').value,
+    latitude: Number(document.getElementById('loc-lat').value),
+    longitude: Number(document.getElementById('loc-lng').value),
     coordinates: {
       lat: Number(document.getElementById('loc-lat').value),
       lng: Number(document.getElementById('loc-lng').value)
     }
   };
 
-  btn.innerText = 'Збереження...';
+  btn.innerText = editingLocationId ? 'Збереження...' : 'Публікація...';
+  btn.disabled = true;
+
   try {
-    const response = await fetch('/api/locations', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(locData)
-    });
+    let response;
+    if (editingLocationId) {
+      // Оновлюємо існуючу
+      response = await fetch(`/api/locations/${editingLocationId}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(locData)
+      });
+    } else {
+      // Створюємо нову
+      response = await fetch('/api/locations', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(locData)
+      });
+    }
+
     if (response.ok) {
-      feedback.style.display = 'block'; feedback.style.color = 'var(--gold)'; feedback.innerText = 'Локацію додано на карту!';
-      document.getElementById('admin-location-form').reset();
-      document.getElementById('loc-image').value = ''; // Очищаємо поле
-      loadLocations();
+      feedback.style.display = 'block'; feedback.style.color = 'var(--gold)'; 
+      feedback.innerText = editingLocationId ? '✅ Локацію успішно оновлено!' : '✅ Локацію додано на карту!';
+      resetLocationForm();
+      loadAdminLocations();
+      loadLocations(); // Оновлюємо карту і списки на сайті
     } else throw new Error('Помилка сервера');
   } catch (error) {
     feedback.style.display = 'block'; feedback.style.color = '#ff6b6b'; feedback.innerText = 'Помилка збереження.';
   } finally {
-    btn.innerText = 'Опублікувати локацію';
+    btn.disabled = false;
     setTimeout(() => feedback.style.display = 'none', 5000);
+  }
+}
+
+async function loadAdminLocations() {
+  const container = document.getElementById('admin-locations-list');
+  if (!container) return;
+  container.innerHTML = '<p style="color:var(--stone);">Завантаження списку локацій...</p>';
+  try {
+    const res = await fetch('/api/locations');
+    allLocations = await res.json();
+    if (!allLocations.length) return container.innerHTML = '<p>Локацій у базі немає.</p>';
+    
+    container.innerHTML = '';
+    allLocations.forEach(loc => {
+      container.innerHTML += `
+        <div class="msg-card" style="display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap: wrap;">
+          <div>
+            <div style="font-family:'Cormorant Garamond', serif; font-size:19px; color:var(--gold);">${loc.name}</div>
+            <div style="font-size:12px; color:var(--stone-light); margin-top:4px;">
+              Категорія: ${loc.category} | Місто: ${loc.city} | Рейтинг: ${loc.ai_rating}
+            </div>
+          </div>
+          <div style="display:flex; gap:10px; flex-wrap: wrap;">
+            <button class="btn-outline" style="flex:1; padding:6px 12px; font-size:10px; border-color:rgba(201,168,76,0.3);" onclick="editLocation('${loc.id}')"><i class="ti ti-pencil" style="vertical-align: middle; margin-right: 4px;"></i> Редагувати</button>
+            <button class="btn-outline" style="flex:1; padding:6px 12px; font-size:10px; color:#ff6b6b; border-color:rgba(255,107,107,0.2);" onclick="deleteLocation('${loc.id}')"><i class="ti ti-trash" style="vertical-align: middle; margin-right: 4px;"></i> Видалити</button>
+          </div>
+        </div>`;
+    });
+  } catch (e) { container.innerHTML = '<p style="color:#ff6b6b;">Помилка завантаження.</p>'; }
+}
+
+function editLocation(id) {
+  const loc = allLocations.find(l => String(l.id) === String(id));
+  if (!loc) return;
+  
+  editingLocationId = id;
+  document.getElementById('loc-name').value = loc.name || '';
+  document.getElementById('loc-cat').value = loc.category || '';
+  document.getElementById('loc-city').value = loc.city || '';
+  document.getElementById('loc-rating').value = loc.ai_rating || '';
+  document.getElementById('loc-price').value = loc.price_range || '';
+  document.getElementById('loc-tag').value = loc.tag || (loc.tags && loc.tags[0]) || '';
+  document.getElementById('loc-lat').value = loc.latitude || (loc.coordinates && loc.coordinates.lat) || '';
+  document.getElementById('loc-lng').value = loc.longitude || (loc.coordinates && loc.coordinates.lng) || '';
+  document.getElementById('loc-desc').value = loc.description || '';
+  document.getElementById('loc-image').value = loc.image_url || '';
+  
+  document.getElementById('admin-location-form-title').innerHTML = '<i class="ti ti-pencil" style="vertical-align: middle; margin-right: 8px;"></i> Редагувати локацію';
+  document.getElementById('loc-submit-btn').innerText = 'Зберегти зміни';
+  document.getElementById('admin-location-form').scrollIntoView({ behavior: 'smooth' });
+}
+
+function resetLocationForm() {
+  editingLocationId = null;
+  document.getElementById('admin-location-form').reset();
+  document.getElementById('loc-image').value = '';
+  document.getElementById('loc-file-chooser').value = '';
+  document.getElementById('admin-location-form-title').innerHTML = '<i class="ti ti-map-pin-plus" style="vertical-align: middle; margin-right: 8px;"></i> Додати нову локацію';
+  document.getElementById('loc-submit-btn').innerText = 'Опублікувати локацію';
+}
+
+async function deleteLocation(id) {
+  if (!confirm('Ви впевнені, що хочете назавжди видалити цю локацію з карти?')) return;
+  
+  try {
+    const res = await fetch(`/api/locations/${id}`, { method: 'DELETE' });
+    if (res.ok) {
+      showToast('🗑️ Локацію успішно видалено');
+      loadAdminLocations(); 
+      loadLocations(); // Оновлюємо публічну карту     
+    } else {
+      showToast('❌ Помилка видалення');
+    }
+  } catch (e) { 
+    showToast('❌ Помилка з\'єднання з сервером'); 
   }
 }
 
