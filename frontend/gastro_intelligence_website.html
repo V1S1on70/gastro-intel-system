@@ -416,7 +416,20 @@
     .map-viz { min-height: 400px; }
     .map-sidebar { max-height: 300px; }
     
-    .admin-dashboard { grid-template-columns: 1fr; padding: 0 20px 100px; }
+    .admin-dashboard { grid-template-columns: 1fr; padding: 0 20px 100px; }.admin-panel-content { padding: 20px 0; } /* Прибираємо подвійні бокові відступи */
+    .form-row[style] { grid-template-columns: 1fr !important; }
+    
+    /* 📱 Дозволяємо кнопкам AI переноситися на новий рядок на телефоні */
+    .form-row div[style*="display:flex"], 
+    .form-row div[style*="display: flex"] {
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .form-row div[style*="display:flex"] button, 
+    .form-row div[style*="display: flex"] button {
+      flex-grow: 1; /* Кнопка розтягнеться на всю ширину для зручного натискання пальцем */
+      justify-content: center;
+    }
     .admin-sidebar { flex-direction: row; overflow-x: auto; white-space: nowrap; border-right: none; border-bottom: 1px solid var(--surface-border); padding-bottom: 0; border-radius: 0; }
     .admin-tab-btn { border-left: none; border-bottom: 3px solid transparent; padding: 16px; width: auto; }
     .admin-tab-btn.active { border-left: none; border-bottom: 3px solid var(--gold); background: transparent; }
@@ -2459,9 +2472,38 @@ function appendChatMessage(text, sender) {
     const messagesContainer = document.getElementById('ai-chat-messages');
     const msgDiv = document.createElement('div');
     msgDiv.className = `chat-msg ${sender}`;
-    msgDiv.innerText = text;
+    
+    // 1. Очищаємо текст від HTML-тегів користувача (для безпеки)
+    let formattedText = text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    
+    // 2. Якщо повідомлення від ШІ, шукаємо теги і міняємо їх на кнопки
+    if (sender === 'ai') {
+        // Заміна [CART:id] на кнопку кошика
+        formattedText = formattedText.replace(/\[CART:([^\]]+)\]/g, (match, id) => {
+            return `<div style="margin-top: 10px;"><button class="btn-primary" style="padding: 8px 12px; font-size: 11px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="addToCart('${id}')"><i class="ti ti-shopping-cart" style="font-size: 14px;"></i> Додати товар у кошик</button></div>`;
+        });
+        
+        // Заміна [MAP:id] на кнопку карти
+        formattedText = formattedText.replace(/\[MAP:([^\]]+)\]/g, (match, id) => {
+            return `<div style="margin-top: 10px;"><button class="btn-outline" style="padding: 8px 12px; font-size: 11px; width: 100%; border-color: var(--gold); color: var(--gold); background: rgba(10,10,10,0.5); display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="goToLocationFromChat('${id}')"><i class="ti ti-map-pin" style="font-size: 14px;"></i> Відкрити на карті</button></div>`;
+        });
+    }
+
+    msgDiv.innerHTML = formattedText;
     messagesContainer.appendChild(msgDiv);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+// 🗺️ НОВА ФУНКЦІЯ: Переліт на карту прямо з чату
+function goToLocationFromChat(id) {
+    toggleAIChat(); // 1. Ховаємо чат, щоб не заважав
+    showPage('map'); // 2. Перемикаємо сторінку на Карту
+    
+    // 3. Даємо карті 0.5 сек на завантаження, летимо до маркера і відкриваємо J.A.R.V.I.S.
+    setTimeout(() => {
+        selectMapLocationById(id);
+        setTimeout(() => openJarvisModalById(id), 800);
+    }, 500);
 }
 
 // --- ФУНКЦІЯ ШТУЧНОГО ІНТЕЛЕКТУ ДЛЯ АНАЛІЗУ ВІДГУКІВ ---
