@@ -363,33 +363,123 @@
   @keyframes pulseLoader { 0% { opacity: 0.5; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0.5; transform: scale(0.9); } }
 
 /* =========================================
-     🌐 ГЛОБАЛЬНІ ФІКСИ (Прибираємо білий фон)
+     🌐 ГЛОБАЛЬНІ ФІКСИ ТА ОПТИМІЗАЦІЯ
      ========================================= */
   html, body {
     background: var(--noir) !important; /* Жодного білого фону при скролі! */
     color: var(--ivory);
-    overflow-x: hidden; /* Забороняємо горизонтальний скрол */
+    overflow-x: hidden; /* Жорстко забороняємо горизонтальний скрол */
     width: 100%;
     margin: 0; padding: 0;
   }
-  
+
+  /* Вимикаємо важкі 3D ефекти на картках для стабільності на слабких телефонах */
   .prod-card, .loc-card, .feat-card, .msg-card {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
     will-change: transform;
     backface-visibility: hidden;
   }
-  
+
   /* Зазори між картками в адмінці */
   #admin-orders-list, #admin-products-list, #admin-locations-list, #admin-messages-list {
-    display: flex; flex-direction: column; gap: 20px; 
+    display: flex; flex-direction: column; gap: 20px;
+  }
+
+  /* Оптимізація Адмін-панелі (Усунення лагів скролу) */
+  .admin-sidebar, .admin-panel-content {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: #0a0a0a !important;
+  }
+  .msg-card {
+    background: #111111 !important;
+    transform: none !important;
+  }
+  .msg-card:hover {
+    transform: none !important;
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.05) !important;
+    border-color: rgba(212, 175, 55, 0.4) !important;
   }
 
   /* =========================================
-     💻 ПЛАНШЕТИ ТА НЕВЕЛИКІ НОУТБУКИ (до 1024px)
+     🤖 ІНТЕРФЕЙС J.A.R.V.I.S. (БАЗОВІ СТИЛІ ПК)
+     ========================================= */
+  .jarvis-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(2, 6, 12, 0.98);
+    z-index: 3000; display: none; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 0.4s ease;
+  }
+  .jarvis-overlay.active { display: flex; opacity: 1; }
+
+  .jarvis-content {
+    width: 95%; max-width: 1150px;
+    background: transparent;
+    border: none; box-shadow: none; padding: 20px; position: relative;
+    transform: scale(1.1) translateY(30px);
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .jarvis-overlay.active .jarvis-content { transform: scale(1) translateY(0); }
+
+  .jarvis-close {
+    position: absolute; top: -10px; right: 0;
+    background: rgba(10, 10, 10, 0.9); border: 1px solid var(--gold); color: var(--gold);
+    font-size: 28px; cursor: pointer; transition: 0.3s; z-index: 20;
+    width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+    border-radius: 50%; box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+  }
+  .jarvis-close:hover { transform: rotate(90deg) scale(1.1); background: var(--gold); color: #000; }
+
+  .jarvis-header, .jarvis-info-box {
+    background: rgba(10, 10, 10, 0.85);
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    box-shadow: 0 0 30px rgba(0,0,0,0.8), inset 0 0 20px rgba(212,175,55,0.05);
+    padding: 32px 40px; border-radius: 12px;
+  }
+
+  .jarvis-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+  .jarvis-label { font-size: 11px; color: var(--gold); letter-spacing: 0.3em; text-transform: uppercase; animation: pulseText 2s infinite; }
+  .jarvis-title { font-family: 'Cormorant Garamond', serif; font-size: 48px; color: var(--ivory); line-height: 1.1; margin-top: 8px;}
+  .jarvis-rating { font-size: 68px; color: var(--gold); font-family: 'Inter', sans-serif; font-weight: 300; line-height: 1; text-shadow: 0 0 20px rgba(212, 175, 55, 0.4); text-align: right;}
+
+  .jarvis-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 32px; }
+
+  .jarvis-image-wrapper { position: relative; border-radius: 12px; overflow: hidden; height: 460px; border: 1px solid rgba(212, 175, 55, 0.4); box-shadow: 0 0 30px rgba(0,0,0,0.8); }
+  .jarvis-img { width: 100%; height: 100%; object-fit: cover; filter: contrast(1.15) saturate(1.2); }
+
+  .jarvis-scanner {
+    position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: var(--gold);
+    box-shadow: 0 0 15px 4px rgba(212, 175, 55, 0.6); animation: scanLinesDesktop 3s infinite linear; z-index: 2;
+    will-change: transform;
+  }
+  @keyframes scanLinesDesktop { 0% { transform: translateY(-10px); } 100% { transform: translateY(460px); } }
+
+  .jarvis-info-box { display: flex; flex-direction: column; gap: 16px; height: 460px; justify-content: space-between;}
+  .jarvis-data-row { display: flex; justify-content: space-between; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--stone-light); border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px; }
+  .jarvis-data-row span:last-child { color: var(--ivory); font-weight: 500; text-align: right; font-size: 14px; }
+  .jarvis-desc { font-size: 15px; line-height: 1.8; color: var(--stone); flex-grow: 1; overflow-y: auto; padding-right: 12px; margin-bottom: 16px;}
+  @keyframes pulseText { 0% { opacity: 0.5; } 50% { opacity: 1; text-shadow: 0 0 8px var(--gold); } 100% { opacity: 0.5; } }
+
+  /* 🎯 КІНЕМАТОГРАФІЧНИЙ ПОПАП НА КАРТІ */
+  .leaflet-popup-content-wrapper { background: rgba(10, 10, 10, 0.95); border: 1px solid var(--gold); border-radius: 4px; box-shadow: 0 0 20px rgba(212, 175, 55, 0.2); }
+  .leaflet-popup-tip { background: rgba(10, 10, 10, 0.95); border: 1px solid var(--gold); }
+  .leaflet-popup-close-button { display: none !important; }
+
+  .leaflet-popup-content { max-width: 250px !important; margin: 14px !important; word-wrap: break-word; }
+  .leaflet-popup-content strong { display: block; white-space: normal; font-size: 18px !important; line-height: 1.2; }
+
+  .cyber-popup-btn {
+    background: rgba(212, 175, 55, 0.1); border: 1px solid var(--gold); color: var(--gold);
+    width: 100%; padding: 8px; font-family: 'Inter', sans-serif; font-size: 10px; font-weight: bold; letter-spacing: 0.2em;
+    cursor: pointer; margin-top: 14px; transition: 0.3s;
+  }
+  .cyber-popup-btn:hover { background: var(--gold); color: #000; box-shadow: 0 0 15px var(--gold); }
+
+  /* =========================================
+     💻 ПЛАНШЕТИ (до 1024px)
      ========================================= */
   @media (max-width: 1024px) {
-    /* Навігація: вмикаємо бургер-меню раніше, щоб посилання не "пливли" */
     .g-nav { padding: 0 32px; }
     .g-nav-cta { display: none; }
     .mobile-menu-btn { display: block; }
@@ -407,18 +497,15 @@
     .mobile-only-btn { display: block; width: 100%; text-align: center; margin-top: 20px; }
     .mobile-only-btn .btn-primary { width: 80%; padding: 14px; font-size: 14px; }
     
-    /* Сітки: переводимо у 2 колонки */
     .hero-stats { grid-template-columns: repeat(2, 1fr); border: none; gap: 24px; padding-top: 0; }
     .hero-stat { border-bottom: 1px solid var(--surface-border); padding-bottom: 16px; border-right: none; }
     .locations-grid, .features-grid, .products-grid, .about-pillars, .g-footer { grid-template-columns: repeat(2, 1fr); }
     .loc-card.featured { grid-row: auto; grid-column: 1 / -1; }
     
-    /* Інші блоки */
     .contact-layout, .about-intro { grid-template-columns: 1fr; gap: 40px; }
     .map-layout { grid-template-columns: 1fr; display: flex; flex-direction: column-reverse; }
     .map-viz { min-height: 450px; }
     
-    /* Адмінка на планшеті */
     .admin-dashboard { grid-template-columns: 1fr; padding: 0 32px 100px; gap: 24px; }
     .admin-sidebar { 
       flex-direction: row; overflow-x: auto; white-space: nowrap; 
@@ -435,11 +522,9 @@
      📱 СМАРТФОНИ (до 768px)
      ========================================= */
   @media (max-width: 768px) {
-    /* Відступи для екрана */
     .g-nav { padding: 0 20px; }
     .hero, .section, .page-hero, .loc-list, .map-container, .contact-layout, .about-intro, .about-pillars, .about-timeline, .products-grid, .g-footer, .footer-bottom, .filters-bar { padding-left: 20px; padding-right: 20px; }
     
-    /* Головний екран (Hero) */
     .hero { min-height: auto; padding-top: 40px; padding-bottom: 60px; justify-content: flex-start; }
     .hero-bg-text { font-size: 70px; right: 0; top: 10%; opacity: 0.04; }
     .hero-title { font-size: 42px; margin-top: 20px; }
@@ -448,62 +533,44 @@
     .hero-actions button { width: 100%; }
     .hero-stats { position: relative; bottom: auto; margin-top: 48px; border-top: 1px solid var(--surface-border); padding-top: 24px;}
     
-    /* Типографіка */
     .section-title, .page-title, .contact-info-title, .about-big-text { font-size: 34px; }
-    
-    /* Сітки: переводимо в 1 колонку */
     .locations-grid, .features-grid, .products-grid, .about-pillars, .g-footer { grid-template-columns: 1fr; }
     
-    /* Список локацій */
     .loc-row { grid-template-columns: 30px 1fr; gap: 12px; padding: 16px; }
     .loc-row > div:nth-child(3), .loc-row > div:nth-child(4), .loc-row > div:nth-child(6) { display: none; }
     .loc-row-score-val { text-align: left; }
     
-    /* Карта */
     .map-sidebar { max-height: 300px; }
     .map-viz { min-height: 350px; }
     
-    /* Фільтри */
     .filters-bar { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 16px; scrollbar-width: none; }
     .filters-bar::-webkit-scrollbar { display: none; }
     .filter-btn { white-space: nowrap; }
 
-    /* Плаваючі кнопки */
     .ai-chat-btn { z-index: 90 !important; bottom: 80px; right: 20px; left: auto; padding: 12px 18px; font-size: 11px; }
     .cart-floating-btn { bottom: 20px; right: 20px; left: auto; padding: 12px 18px; font-size: 12px; z-index: 99; }
+    .telegram-btn { bottom: 80px; right: 20px; width: 48px; height: 48px; }
+    .telegram-icon { width: 24px; height: 24px; }
     .ai-chat-window { z-index: 500 !important; width: calc(100% - 40px); height: 60vh; bottom: 135px; left: 20px; right: 20px; }
     .modal-content { padding: 24px 20px; margin: 16px; width: calc(100% - 32px); }
 
-    /* 🛡️ БРОНЕБІЙНА АДМІНКА ДЛЯ ТЕЛЕФОНУ */
-    .admin-dashboard { padding: 0 20px 100px 20px !important; }
+    /* --- АДМІНКА --- */
+    .admin-dashboard { padding: 0 0 100px 0 !important; }
+    .admin-panel-content { padding: 0 20px !important; width: 100% !important; box-sizing: border-box !important; overflow-x: hidden !important; }
     
-    /* Форми в один стовпець і без виходу за краї */
-    .form-row, .form-row[style] { 
-      grid-template-columns: 1fr !important; 
-      gap: 16px !important; 
-      width: 100% !important; 
-      margin-left: 0 !important; margin-right: 0 !important;
-    }
-    input.form-input, select.form-select, textarea.form-input { 
-      width: 100% !important; max-width: 100% !important; box-sizing: border-box; 
-    }
+    .form-row, .form-row[style] { grid-template-columns: 1fr !important; gap: 16px !important; width: 100% !important; margin-left: 0 !important; margin-right: 0 !important; box-sizing: border-box !important; }
+    input.form-input, select.form-select, textarea.form-input { width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; }
     
-    /* Кнопки AI під інпутами */
-    .form-row div[style*="display:flex"], .form-row div[style*="display: flex"] {
-      flex-direction: column !important; align-items: stretch !important; gap: 12px !important;
-    }
+    .form-row div[style*="display:flex"], .form-row div[style*="display: flex"] { flex-direction: column !important; align-items: stretch !important; gap: 12px !important; }
     .form-row div[style*="display:flex"] button { width: 100% !important; justify-content: center !important; }
 
-    /* Адаптація карток списків (щоб не розпирали екран) */
     .msg-card { padding: 20px !important; }
-    .msg-card > div[style*="display:flex"], .msg-card > div[style*="display: flex"] {
-      flex-direction: column !important; align-items: stretch !important; gap: 12px !important; text-align: left !important;
-    }
-    .msg-card > div > div[style*="display:flex"] { flex-direction: row !important; flex-wrap: wrap !important; }
-    .msg-card button { width: 100% !important; margin: 0 !important; }
+    #admin-products-list .msg-card { flex-direction: column !important; align-items: stretch !important; gap: 16px !important; }
+    #admin-products-list .msg-card > div[style*="display:flex"], #admin-products-list .msg-card > div[style*="display: flex"] { flex-wrap: wrap !important; width: 100% !important; gap: 10px !important; }
+    #admin-products-list .msg-card button { flex: 1 !important; justify-content: center !important; padding: 12px 10px !important; margin: 0 !important; }
 
-    /* 🤖 МОДАЛКА J.A.R.V.I.S. */
-    .jarvis-content { padding: 16px; width: 95%; max-height: 90vh; overflow-y: auto; }
+    /* --- JARVIS MOBILE --- */
+    .jarvis-content { padding: 16px; width: 95%; max-height: 90vh; overflow-y: auto; transform: scale(1) translateY(0) !important; }
     .jarvis-close { top: 10px; right: 10px; width: 36px; height: 36px; font-size: 20px; background: var(--noir); }
     .jarvis-header, .jarvis-info-box { padding: 20px; border-radius: 8px; height: auto; }
     .jarvis-header { flex-direction: column; align-items: flex-start; gap: 8px; margin-top: 30px; margin-bottom: 16px; }
@@ -511,10 +578,10 @@
     .jarvis-rating { font-size: 46px; text-align: left; }
     .jarvis-rating-box { align-self: flex-start; }
     .jarvis-grid { grid-template-columns: 1fr; gap: 16px; }
-    .jarvis-image-wrapper { height: 220px; }
+    .jarvis-image-wrapper { height: 220px; min-height: auto; }
     .jarvis-scanner { animation: scanLinesMobile 3s infinite linear; }
     @keyframes scanLinesMobile { 0% { transform: translateY(-10px); } 100% { transform: translateY(220px); } }
-    .jarvis-desc { font-size: 13px; margin-bottom: 16px; }
+    .jarvis-desc { font-size: 13px; max-height: none; overflow: visible; padding-right: 0; margin-bottom: 16px; }
     .jarvis-info-box > div:last-child { flex-direction: column; gap: 12px; }
     .jarvis-info-box button { width: 100%; padding: 16px; }
     .leaflet-popup-content { max-width: 180px !important; }
