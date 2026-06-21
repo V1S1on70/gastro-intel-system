@@ -416,32 +416,98 @@
     .map-viz { min-height: 400px; }
     .map-sidebar { max-height: 300px; }
     
-/* --- АДАПТАЦІЯ АДМІНКИ --- */
-    .admin-dashboard { grid-template-columns: 1fr; padding: 0 16px 100px; }
+    .admin-dashboard { grid-template-columns: 1fr; padding: 0 20px 100px; }.admin-panel-content { padding: 20px 0; } /* Прибираємо подвійні бокові відступи */
+    .form-row[style] { grid-template-columns: 1fr !important; }
     
-    .admin-sidebar { flex-direction: row; overflow-x: auto; white-space: nowrap; border-right: none; border-bottom: 1px solid var(--surface-border); padding-bottom: 0; border-radius: 0; margin-bottom: 24px; }
-    .admin-tab-btn { border-left: none; border-bottom: 3px solid transparent; padding: 16px; width: auto; }
-    .admin-tab-btn.active { border-left: none; border-bottom: 3px solid var(--gold); background: transparent; }
-    
-    /* Прибираємо внутрішні відступи контенту адмінки на телефоні, щоб форми були на всю ширину екрану */
-    .admin-panel-content { padding: 0 !important; } 
-    
-    /* Примусово робимо всі сітки в формах (ціна, вага, категорія) в 1 стовпець на мобільному */
-    .form-row[style*="grid"] { grid-template-columns: 1fr !important; gap: 16px !important; }
-    
-    /* Адаптуємо кнопки "Згенерувати AI" та "Аналізувати": ставимо заголовок над кнопкою */
+    /* 📱 Дозволяємо кнопкам AI переноситися на новий рядок на телефоні */
     .form-row div[style*="display:flex"], 
     .form-row div[style*="display: flex"] {
-      flex-direction: column;
-      align-items: flex-start !important;
+      flex-wrap: wrap;
       gap: 12px;
+    }/* --- ІДЕАЛЬНА АДАПТАЦІЯ АДМІНКИ ДЛЯ ТЕЛЕФОНІВ --- */
+    .admin-dashboard { 
+      grid-template-columns: 1fr !important; 
+      padding: 0 20px 100px 20px !important; 
+      gap: 20px !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+      overflow: hidden !important;
     }
-    /* Розтягуємо ці кнопки на всю ширину для зручного натискання пальцем */
+    
+    /* Горизонтальне меню без скролбару (як в iOS) */
+    .admin-sidebar { 
+      flex-direction: row !important; 
+      overflow-x: auto !important; 
+      white-space: nowrap !important; 
+      border-right: none !important; 
+      border-bottom: 1px solid var(--surface-border) !important; 
+      padding-bottom: 0 !important; 
+      border-radius: 0 !important; 
+      margin: 0 0 24px 0 !important;
+      scrollbar-width: none; 
+    }
+    .admin-sidebar::-webkit-scrollbar { display: none; }
+    
+    .admin-tab-btn { 
+      border-left: none !important; 
+      border-bottom: 3px solid transparent !important; 
+      padding: 12px 16px !important; 
+      width: auto !important; 
+      font-size: 11px !important;
+    }
+    .admin-tab-btn.active { 
+      border-left: none !important; 
+      border-bottom: 3px solid var(--gold) !important; 
+      background: transparent !important; 
+    }
+    
+    /* Прибираємо зсув контенту */
+    .admin-panel-content { 
+      padding: 0 !important; 
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    
+    /* Робимо всі форми в 1 стовпець і фіксуємо ширину */
+    .form-row, .form-row[style] { 
+      grid-template-columns: 1fr !important; 
+      gap: 16px !important; 
+      width: 100% !important;
+      margin-left: 0 !important;
+      margin-right: 0 !important;
+      box-sizing: border-box !important;
+    }
+    
+    /* Кнопки AI та лейбли ставимо одне під одним */
+    .form-row div[style*="display:flex"], 
+    .form-row div[style*="display: flex"] {
+      flex-direction: column !important;
+      align-items: flex-start !important;
+      gap: 12px !important;
+    }
+    
     .form-row div[style*="display:flex"] button, 
     .form-row div[style*="display: flex"] button {
       width: 100% !important;
+      justify-content: center !important;
+    }
+    
+    /* Жорсткий ліміт для полів вводу, щоб вони не розтягували екран */
+    input.form-input, select.form-select, textarea.form-input {
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    .form-row div[style*="display:flex"] button, 
+    .form-row div[style*="display: flex"] button {
+      flex-grow: 1; /* Кнопка розтягнеться на всю ширину для зручного натискання пальцем */
       justify-content: center;
     }
+    .admin-sidebar { flex-direction: row; overflow-x: auto; white-space: nowrap; border-right: none; border-bottom: 1px solid var(--surface-border); padding-bottom: 0; border-radius: 0; }
+    .admin-tab-btn { border-left: none; border-bottom: 3px solid transparent; padding: 16px; width: auto; }
+    .admin-tab-btn.active { border-left: none; border-bottom: 3px solid var(--gold); background: transparent; }
+    .admin-panel-content { padding: 20px; }
+    .form-row[style] { grid-template-columns: 1fr !important; }
     
     .modal-content { padding: 24px; margin: 16px; width: calc(100% - 32px); }
     .filters-bar { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 16px; margin-bottom: 20px; }
