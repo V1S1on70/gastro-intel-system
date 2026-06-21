@@ -2345,13 +2345,22 @@ async function submitNewLocation(event) {
   const btn = document.getElementById('loc-submit-btn');
   const feedback = document.getElementById('loc-feedback');
   const rawTag = document.getElementById('loc-tag').value.trim();
-  const fileInput = document.getElementById('loc-file-chooser'); // Беремо фізичний файл
+  const fileInput = document.getElementById('loc-file-chooser'); // 👈 Беремо фізичний файл!
+
+  // Перевірка: якщо це нова локація, фото є обов'язковим
+  if (!editingLocationId && (!fileInput.files || fileInput.files.length === 0)) {
+     feedback.style.display = 'block';
+     feedback.style.color = '#ff6b6b';
+     feedback.innerText = '❌ Будь ласка, виберіть файл фотографії!';
+     setTimeout(() => { feedback.style.display = 'none'; }, 4000);
+     return;
+  }
 
   btn.innerText = editingLocationId ? 'Збереження...' : 'Публікація...';
   btn.disabled = true;
 
   try {
-    // Використовуємо FormData для передачі файлу
+    // 🚀 Використовуємо FormData для передачі тексту + файлу разом
     const formData = new FormData();
     formData.append('name', document.getElementById('loc-name').value);
     formData.append('category', document.getElementById('loc-cat').value);
@@ -2363,11 +2372,9 @@ async function submitNewLocation(event) {
     formData.append('latitude', document.getElementById('loc-lat').value);
     formData.append('longitude', document.getElementById('loc-lng').value);
 
-    // Якщо вибрано новий файл — додаємо його до відправки
+    // Додаємо сам файл фотографії
     if (fileInput.files && fileInput.files.length > 0) {
-        formData.append('image', fileInput.files[0]); // Додаємо фотографію
-    } else {
-        formData.append('image_url', document.getElementById('loc-image').value);
+        formData.append('image', fileInput.files[0]); 
     }
 
     let response;
@@ -2386,7 +2393,7 @@ async function submitNewLocation(event) {
       feedback.innerText = editingLocationId ? '✅ Локацію успішно оновлено!' : '✅ Локацію додано на карту!';
       resetLocationForm();
       loadAdminLocations();
-      loadLocations(); 
+      loadLocations(); // Оновлюємо публічну карту
     } else throw new Error('Помилка сервера');
   } catch (error) {
     feedback.style.display = 'block'; feedback.style.color = '#ff6b6b'; feedback.innerText = 'Помилка збереження.';
@@ -2395,7 +2402,6 @@ async function submitNewLocation(event) {
     setTimeout(() => feedback.style.display = 'none', 5000);
   }
 }
-
 async function loadAdminLocations() {
   const container = document.getElementById('admin-locations-list');
   if (!container) return;
