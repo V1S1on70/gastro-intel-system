@@ -416,25 +416,32 @@
     .map-viz { min-height: 400px; }
     .map-sidebar { max-height: 300px; }
     
-    .admin-dashboard { grid-template-columns: 1fr; padding: 0 20px 100px; }.admin-panel-content { padding: 20px 0; } /* Прибираємо подвійні бокові відступи */
-    .form-row[style] { grid-template-columns: 1fr !important; }
+/* --- АДАПТАЦІЯ АДМІНКИ --- */
+    .admin-dashboard { grid-template-columns: 1fr; padding: 0 16px 100px; }
     
-    /* 📱 Дозволяємо кнопкам AI переноситися на новий рядок на телефоні */
-    .form-row div[style*="display:flex"], 
-    .form-row div[style*="display: flex"] {
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-    .form-row div[style*="display:flex"] button, 
-    .form-row div[style*="display: flex"] button {
-      flex-grow: 1; /* Кнопка розтягнеться на всю ширину для зручного натискання пальцем */
-      justify-content: center;
-    }
-    .admin-sidebar { flex-direction: row; overflow-x: auto; white-space: nowrap; border-right: none; border-bottom: 1px solid var(--surface-border); padding-bottom: 0; border-radius: 0; }
+    .admin-sidebar { flex-direction: row; overflow-x: auto; white-space: nowrap; border-right: none; border-bottom: 1px solid var(--surface-border); padding-bottom: 0; border-radius: 0; margin-bottom: 24px; }
     .admin-tab-btn { border-left: none; border-bottom: 3px solid transparent; padding: 16px; width: auto; }
     .admin-tab-btn.active { border-left: none; border-bottom: 3px solid var(--gold); background: transparent; }
-    .admin-panel-content { padding: 20px; }
-    .form-row[style] { grid-template-columns: 1fr !important; }
+    
+    /* Прибираємо внутрішні відступи контенту адмінки на телефоні, щоб форми були на всю ширину екрану */
+    .admin-panel-content { padding: 0 !important; } 
+    
+    /* Примусово робимо всі сітки в формах (ціна, вага, категорія) в 1 стовпець на мобільному */
+    .form-row[style*="grid"] { grid-template-columns: 1fr !important; gap: 16px !important; }
+    
+    /* Адаптуємо кнопки "Згенерувати AI" та "Аналізувати": ставимо заголовок над кнопкою */
+    .form-row div[style*="display:flex"], 
+    .form-row div[style*="display: flex"] {
+      flex-direction: column;
+      align-items: flex-start !important;
+      gap: 12px;
+    }
+    /* Розтягуємо ці кнопки на всю ширину для зручного натискання пальцем */
+    .form-row div[style*="display:flex"] button, 
+    .form-row div[style*="display: flex"] button {
+      width: 100% !important;
+      justify-content: center;
+    }
     
     .modal-content { padding: 24px; margin: 16px; width: calc(100% - 32px); }
     .filters-bar { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 16px; margin-bottom: 20px; }
