@@ -415,7 +415,7 @@
     .map-layout { grid-template-columns: 1fr; display: flex; flex-direction: column-reverse; }
     .map-viz { min-height: 400px; }
     .map-sidebar { max-height: 300px; }
-    
+  }
 /* --- ІДЕАЛЬНА АДАПТАЦІЯ АДМІНКИ ДЛЯ ТЕЛЕФОНІВ --- */
     .admin-dashboard { 
       grid-template-columns: 1fr !important; 
@@ -507,17 +507,7 @@
       max-width: 100% !important;
       box-sizing: border-box !important;
     }
-    .form-row div[style*="display:flex"] button, 
-    .form-row div[style*="display: flex"] button {
-      flex-grow: 1; /* Кнопка розтягнеться на всю ширину для зручного натискання пальцем */
-      justify-content: center;
-    }
-    .admin-sidebar { flex-direction: row; overflow-x: auto; white-space: nowrap; border-right: none; border-bottom: 1px solid var(--surface-border); padding-bottom: 0; border-radius: 0; }
-    .admin-tab-btn { border-left: none; border-bottom: 3px solid transparent; padding: 16px; width: auto; }
-    .admin-tab-btn.active { border-left: none; border-bottom: 3px solid var(--gold); background: transparent; }
-    .admin-panel-content { padding: 20px; }
-    .form-row[style] { grid-template-columns: 1fr !important; }
-    
+   
     .modal-content { padding: 24px; margin: 16px; width: calc(100% - 32px); }
     .filters-bar { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 16px; margin-bottom: 20px; }
     .filter-btn { white-space: nowrap; }
@@ -528,7 +518,8 @@
     .telegram-icon { width: 24px; height: 24px; }
     
     .ai-chat-window { z-index: 500 !important; width: calc(100% - 40px); height: 420px; bottom: 140px; left: 20px; right: 20px; }
-  }
+  
+
 /* 🤖 ІНТЕРФЕЙС "ТОНІ СТАРК" / JARVIS ДЛЯ КАРТИ */
   .jarvis-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -626,29 +617,15 @@
     
     /* 2. Повертаємо хрестик всередину екрана */
     .jarvis-close {
-      top: 10px;
-      right: 10px;
-      width: 36px;
-      height: 36px;
-      font-size: 20px;
-      z-index: 50;
-      background: var(--noir); /* Щоб його було чітко видно */
+      top: 10px; right: 10px; width: 36px; height: 36px;
+      font-size: 20px; z-index: 50; background: var(--noir); 
     }
 
     /* 3. Зменшуємо величезні відступи літаючих панелей */
-    .jarvis-header, .jarvis-info-box {
-      padding: 20px;
-      border-radius: 8px;
-    }
+    .jarvis-header, .jarvis-info-box { padding: 20px; border-radius: 8px; }
     
     /* 4. Вирівнюємо шапку (заголовок + рейтинг) */
-    .jarvis-header { 
-      flex-direction: column; 
-      align-items: flex-start; 
-      gap: 8px; 
-      margin-top: 30px; /* Відступаємо від хрестика */
-      margin-bottom: 16px; 
-    }
+    .jarvis-header { flex-direction: column; align-items: flex-start; gap: 8px; margin-top: 30px; margin-bottom: 16px; }
     
     /* 5. Зменшуємо шрифти до мобільних розмірів */
     .jarvis-title { font-size: 28px; line-height: 1.1; margin-top: 4px; }
@@ -670,28 +647,51 @@
     /* 9. Кнопки ставимо одну під одною */
     .jarvis-info-box > div:last-child { flex-direction: column; gap: 12px; }
     .jarvis-info-box button { width: 100%; padding: 16px; }
-    /* Додай це всередину @media (max-width: 768px) */
+    
     .leaflet-popup-content { max-width: 180px !important; }
     .leaflet-popup-content strong { font-size: 16px !important; }
-  }
-  /* =========================================
-     🚀 ОПТИМІЗАЦІЯ АДМІН-ПАНЕЛІ (УСУНЕННЯ ЛАГІВ СКРОЛУ)
-     ========================================= */
-  
-  /* Знімаємо ефект скла з панелей адмінки */
+    
+    /* 🚀 ЖОРСТКЕ БЛОКУВАННЯ РОЗТЯГУВАННЯ ФОРМ ТА АДАПТАЦІЯ ТОВАРІВ (ТЕПЕР ВСЕРЕДИНІ @MEDIA!) */
+    .admin-panel-content {
+      overflow-x: hidden !important; 
+    }
+    
+    #admin-products-list .msg-card {
+      flex-direction: column !important;
+      align-items: stretch !important;
+      gap: 16px !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+
+    #admin-products-list .msg-card > div[style*="display:flex"],
+    #admin-products-list .msg-card > div[style*="display: flex"] {
+      flex-wrap: wrap !important;
+      width: 100% !important;
+      gap: 10px !important;
+    }
+
+    #admin-products-list .msg-card button {
+      flex: 1 !important; 
+      justify-content: center !important;
+      padding: 12px 10px !important;
+    }
+  } /* <-- ОСЬ ВОНА, ГОЛОВНА ЗАКРИВАЮЧА ДУЖКА МОБІЛЬНОЇ СЕКЦІЇ! */
+
+  /* Знімаємо ефект скла з панелей адмінки (ДЛЯ ВСІХ ЕКРАНІВ) */
   .admin-sidebar, .admin-panel-content {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
-    background: #0a0a0a !important; /* Суцільний темний колір */
+    background: #0a0a0a !important; 
   }
 
   /* Робимо картки замовлень/товарів легкими для відеокарти */
   .msg-card {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
-    will-change: auto !important; /* Звільняємо пам'ять відеокарти */
-    background: #111111 !important; /* Непрозорий фон */
-    transform: none !important; /* Вимикаємо 3D-підготовку */
+    will-change: auto !important; 
+    background: #111111 !important; 
+    transform: none !important; 
   }
   
   /* Вимикаємо підстрибування при наведенні миші в адмінці (там воно зайве) */
@@ -700,20 +700,17 @@
     box-shadow: 0 0 15px rgba(212, 175, 55, 0.05) !important;
     border-color: rgba(212, 175, 55, 0.4) !important;
   }
+  
   /* ДОДАТИ В КІНЕЦЬ ТЕГУ <style> */
   .prod-card, .loc-card, .feat-card, .msg-card {
-    /* Вимикаємо "важкі" ефекти на ПК для стабільності */
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
-    /* Допомагаємо браузеру зрозуміти, що це статичний елемент */
     will-change: transform;
     backface-visibility: hidden;
   }
   
-  /* Зменшуємо навантаження при скролі */
-  body {
-    overflow-x: hidden;
-  }
+  body { overflow-x: hidden; }
+  
   /* 🚀 РОБИМО ЗАЗОРИ МІЖ КАРТКАМИ В АДМІНЦІ */
   #admin-orders-list, 
   #admin-products-list, 
@@ -721,10 +718,9 @@
   #admin-messages-list {
     display: flex;
     flex-direction: column;
-    gap: 20px; /* Красивий відступ між блоками */
+    gap: 20px; 
   }
 </style>
-
 
 <div id="gastro-app">
 <div id="global-loader" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--noir); z-index: 999999; display: flex; align-items: center; justify-content: center; transition: opacity 0.5s ease;">
