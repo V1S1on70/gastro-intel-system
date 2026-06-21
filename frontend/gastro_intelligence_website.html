@@ -416,24 +416,16 @@
     .map-viz { min-height: 400px; }
     .map-sidebar { max-height: 300px; }
     
-    .admin-dashboard { grid-template-columns: 1fr; padding: 0 20px 100px; }.admin-panel-content { padding: 20px 0; } /* Прибираємо подвійні бокові відступи */
-    .form-row[style] { grid-template-columns: 1fr !important; }
-    
-    /* 📱 Дозволяємо кнопкам AI переноситися на новий рядок на телефоні */
-    .form-row div[style*="display:flex"], 
-    .form-row div[style*="display: flex"] {
-      flex-wrap: wrap;
-      gap: 12px;
-    }/* --- ІДЕАЛЬНА АДАПТАЦІЯ АДМІНКИ ДЛЯ ТЕЛЕФОНІВ --- */
+/* --- ІДЕАЛЬНА АДАПТАЦІЯ АДМІНКИ ДЛЯ ТЕЛЕФОНІВ --- */
     .admin-dashboard { 
       grid-template-columns: 1fr !important; 
-      padding: 0 0 100px 0 !important; /* Забираємо відступи тут, щоб меню йшло від краю до краю */
+      padding: 0 0 100px 0 !important; 
       gap: 0 !important;
       width: 100% !important;
+      max-width: 100vw !important;
       overflow: hidden !important;
     }
     
-    /* Горизонтальне меню без скролбару (як в iOS) */
     .admin-sidebar { 
       flex-direction: row !important; 
       overflow-x: auto !important; 
@@ -453,8 +445,8 @@
       padding: 14px 16px !important; 
       width: auto !important; 
       font-size: 11px !important;
-      margin: 0 !important; /* 🚀 ВИПРАВЛЕНО: Збиваємо margin-top у кнопки "Вийти", щоб вона стала рівно */
-      border-top: none !important; /* Прибираємо зайву лінію у кнопки "Вийти" */
+      margin: 0 !important; 
+      border-top: none !important; 
     }
     .admin-tab-btn.active { 
       border-left: none !important; 
@@ -462,20 +454,37 @@
       background: transparent !important; 
     }
     
-    /* 🚀 ВИПРАВЛЕНО: Повертаємо безпечні відступи для контенту, щоб поля не прилипали до екрану */
     .admin-panel-content { 
-      padding: 0 20px !important; 
+      padding: 0 24px !important; /* 🚀 БЕЗПЕЧНІ ВІДСТУПИ ДЛЯ ФОРМИ */
       width: 100% !important;
       box-sizing: border-box !important;
     }
     
-    /* Робимо всі форми в 1 стовпець */
     .form-row, .form-row[style] { 
       grid-template-columns: 1fr !important; 
       gap: 16px !important; 
       width: 100% !important;
       margin-left: 0 !important;
       margin-right: 0 !important;
+      box-sizing: border-box !important;
+    }
+    
+    .form-row div[style*="display:flex"], 
+    .form-row div[style*="display: flex"] {
+      flex-direction: column !important;
+      align-items: flex-start !important;
+      gap: 12px !important;
+    }
+    
+    .form-row div[style*="display:flex"] button, 
+    .form-row div[style*="display: flex"] button {
+      width: 100% !important;
+      justify-content: center !important;
+    }
+    
+    input.form-input, select.form-select, textarea.form-input {
+      width: 100% !important;
+      max-width: 100% !important;
       box-sizing: border-box !important;
     }
     
@@ -705,7 +714,17 @@
   body {
     overflow-x: hidden;
   }
+  /* 🚀 РОБИМО ЗАЗОРИ МІЖ КАРТКАМИ В АДМІНЦІ */
+  #admin-orders-list, 
+  #admin-products-list, 
+  #admin-locations-list, 
+  #admin-messages-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* Красивий відступ між блоками */
+  }
 </style>
+
 
 <div id="gastro-app">
 <div id="global-loader" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--noir); z-index: 999999; display: flex; align-items: center; justify-content: center; transition: opacity 0.5s ease;">
