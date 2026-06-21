@@ -427,10 +427,9 @@
     }/* --- ІДЕАЛЬНА АДАПТАЦІЯ АДМІНКИ ДЛЯ ТЕЛЕФОНІВ --- */
     .admin-dashboard { 
       grid-template-columns: 1fr !important; 
-      padding: 0 20px 100px 20px !important; 
-      gap: 20px !important;
+      padding: 0 0 100px 0 !important; /* Забираємо відступи тут, щоб меню йшло від краю до краю */
+      gap: 0 !important;
       width: 100% !important;
-      box-sizing: border-box !important;
       overflow: hidden !important;
     }
     
@@ -451,9 +450,11 @@
     .admin-tab-btn { 
       border-left: none !important; 
       border-bottom: 3px solid transparent !important; 
-      padding: 12px 16px !important; 
+      padding: 14px 16px !important; 
       width: auto !important; 
       font-size: 11px !important;
+      margin: 0 !important; /* 🚀 ВИПРАВЛЕНО: Збиваємо margin-top у кнопки "Вийти", щоб вона стала рівно */
+      border-top: none !important; /* Прибираємо зайву лінію у кнопки "Вийти" */
     }
     .admin-tab-btn.active { 
       border-left: none !important; 
@@ -461,14 +462,14 @@
       background: transparent !important; 
     }
     
-    /* Прибираємо зсув контенту */
+    /* 🚀 ВИПРАВЛЕНО: Повертаємо безпечні відступи для контенту, щоб поля не прилипали до екрану */
     .admin-panel-content { 
-      padding: 0 !important; 
+      padding: 0 20px !important; 
       width: 100% !important;
       box-sizing: border-box !important;
     }
     
-    /* Робимо всі форми в 1 стовпець і фіксуємо ширину */
+    /* Робимо всі форми в 1 стовпець */
     .form-row, .form-row[style] { 
       grid-template-columns: 1fr !important; 
       gap: 16px !important; 
@@ -492,7 +493,6 @@
       justify-content: center !important;
     }
     
-    /* Жорсткий ліміт для полів вводу, щоб вони не розтягували екран */
     input.form-input, select.form-select, textarea.form-input {
       width: 100% !important;
       max-width: 100% !important;
