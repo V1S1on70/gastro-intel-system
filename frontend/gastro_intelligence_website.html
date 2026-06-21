@@ -1155,7 +1155,8 @@
             </div>
             <div class="form-row">
               <label class="form-label">Файл фото локації</label>
-              <input class="form-input" id="loc-file-chooser" type="file" accept="image/*" style="padding: 10px; cursor: pointer;" />
+              <input class="form-input" id="loc-file-chooser" type="file" accept="image/*" style="padding: 10px; cursor: pointer;" onchange="document.getElementById('loc-image').value = 'images/' + this.files[0].name" />
+              <input type="hidden" id="loc-image" value="" />
             </div>
             <div class="form-row" style="background: rgba(201,168,76,0.05); padding: 16px; border: 0.5px solid rgba(201,168,76,0.2); margin-top: 16px;">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
@@ -2341,11 +2342,31 @@ async function submitNewLocation(event) {
     price_range: document.getElementById('loc-price').value,
     tags: rawTag ? [rawTag] : [],
     description: document.getElementById('loc-desc').value,
+    image_url: document.getElementById('loc-image').value, // 🚀 ОСЬ ТЕ ЩО БУЛО ВІДСУТНЄ: Відправляємо фото в базу!
     coordinates: {
       lat: Number(document.getElementById('loc-lat').value),
       lng: Number(document.getElementById('loc-lng').value)
     }
   };
+
+  btn.innerText = 'Збереження...';
+  try {
+    const response = await fetch('/api/locations', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(locData)
+    });
+    if (response.ok) {
+      feedback.style.display = 'block'; feedback.style.color = 'var(--gold)'; feedback.innerText = 'Локацію додано на карту!';
+      document.getElementById('admin-location-form').reset();
+      document.getElementById('loc-image').value = ''; // Очищаємо поле
+      loadLocations();
+    } else throw new Error('Помилка сервера');
+  } catch (error) {
+    feedback.style.display = 'block'; feedback.style.color = '#ff6b6b'; feedback.innerText = 'Помилка збереження.';
+  } finally {
+    btn.innerText = 'Опублікувати локацію';
+    setTimeout(() => feedback.style.display = 'none', 5000);
+  }
+}
 
   btn.innerText = 'Збереження...';
   try {
