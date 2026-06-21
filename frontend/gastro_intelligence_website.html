@@ -7,7 +7,7 @@
   <link rel="icon" type="image/svg+xml" href="images/logo.svg">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <style>
  :root {
     /* 💎 Преміальна палітра Pro Max */
@@ -1047,12 +1047,12 @@
     
     <div class="admin-dashboard" id="admin-dashboard-screen" style="display: none;">
       <div class="admin-sidebar">
-        <button class="admin-tab-btn active" id="btn-tab-stats" onclick="switchAdminTab('stats')">📊 Статистика</button>
-        <button class="admin-tab-btn" id="btn-tab-orders" onclick="switchAdminTab('orders')">🛒 Замовлення</button>
-        <button class="admin-tab-btn" id="btn-tab-products" onclick="switchAdminTab('products')">📦 Товари (Мацики)</button>
-        <button class="admin-tab-btn" id="btn-tab-locations" onclick="switchAdminTab('locations')">📍 Локації</button>
-        <button class="admin-tab-btn" id="btn-tab-messages" onclick="switchAdminTab('messages')">✉️ Повідомлення</button>
-        <button class="admin-tab-btn" onclick="logoutAdmin()" style="color: #ff6b6b; margin-top: 40px; border-top: 0.5px solid rgba(138,130,120,0.1);">🚪 Вийти</button>
+        <button class="admin-tab-btn active" id="btn-tab-stats" onclick="switchAdminTab('stats')"><i class="ti ti-chart-bar" style="font-size: 16px; vertical-align: middle; margin-right: 8px;"></i> Статистика</button>
+        <button class="admin-tab-btn" id="btn-tab-orders" onclick="switchAdminTab('orders')"><i class="ti ti-receipt" style="font-size: 16px; vertical-align: middle; margin-right: 8px;"></i> Замовлення</button>
+        <button class="admin-tab-btn" id="btn-tab-products" onclick="switchAdminTab('products')"><i class="ti ti-meat" style="font-size: 16px; vertical-align: middle; margin-right: 8px;"></i> Товари (Мацики)</button>
+        <button class="admin-tab-btn" id="btn-tab-locations" onclick="switchAdminTab('locations')"><i class="ti ti-map-pin" style="font-size: 16px; vertical-align: middle; margin-right: 8px;"></i> Локації</button>
+        <button class="admin-tab-btn" id="btn-tab-messages" onclick="switchAdminTab('messages')"><i class="ti ti-mail" style="font-size: 16px; vertical-align: middle; margin-right: 8px;"></i> Повідомлення</button>
+        <button class="admin-tab-btn" onclick="logoutAdmin()" style="color: #ff6b6b; margin-top: 40px; border-top: 0.5px solid rgba(138,130,120,0.1);"><i class="ti ti-logout" style="font-size: 16px; vertical-align: middle; margin-right: 8px;"></i> Вийти</button>
       </div>
 
       <div class="admin-panel-content">
@@ -1082,13 +1082,13 @@
         <div class="admin-tab-pane" id="admin-tab-orders">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
              <h2 style="font-family:'Cormorant Garamond', serif; font-size:28px; color:var(--gold);">Замовлення (Кошик)</h2>
-             <button class="btn-outline" style="padding:6px 16px; font-size:9px;" onclick="loadAdminOrders()">🔄 Оновити</button>
+             <button class="btn-outline" style="padding:6px 16px; font-size:9px;" onclick="loadAdminOrders()"><i class="ti ti-refresh" style="vertical-align: middle; margin-right: 4px; font-size: 12px;"></i> Оновити</button>
           </div>
           <div id="admin-orders-list"></div>
         </div>
 
         <div class="admin-tab-pane" id="admin-tab-products">
-          <h2 id="admin-product-form-title" style="font-family:'Cormorant Garamond', serif; font-size:28px; margin-bottom:24px; color:var(--gold);">Додати новий продукт</h2>
+          <h2 id="admin-product-form-title" style="font-family:'Cormorant Garamond', serif; font-size:28px; margin-bottom:24px; color:var(--gold);"><i class="ti ti-box" style="vertical-align: middle; margin-right: 8px;"></i> Додати новий продукт</h2>
           <form class="contact-form" id="admin-product-form" onsubmit="submitNewProduct(event)">
             <div class="form-row" style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
               <div><label class="form-label">Назва товару</label><input class="form-input" id="admin-name" type="text" required /></div>
@@ -1145,7 +1145,7 @@
             <div class="form-row">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                 <label class="form-label" style="margin-bottom:0;">Опис товару</label>
-                <button type="button" class="btn-outline" style="padding:6px 12px; font-size:10px; border-color:var(--gold); color:var(--gold);" onclick="generateAIDescription()">✨ Згенерувати AI</button>
+                <button type="button" class="btn-outline" style="padding:6px 12px; font-size:10px; border-color:var(--gold); color:var(--gold);" onclick="generateAIDescription()"><i class="ti ti-sparkles" style="vertical-align: middle; margin-right: 4px;"></i> Згенерувати AI</button>
               </div>
               <textarea class="form-input" id="admin-desc" style="min-height: 100px; line-height: 1.6;" required></textarea>
             </div>
@@ -1158,7 +1158,7 @@
         </div>
 
         <div class="admin-tab-pane" id="admin-tab-locations">
-          <h2 style="font-family:'Cormorant Garamond', serif; font-size:28px; margin-bottom:24px; color:var(--gold);">Додати нову локацію</h2>
+          <h2 style="font-family:'Cormorant Garamond', serif; font-size:28px; margin-bottom:24px; color:var(--gold);"><i class="ti ti-map-pin-plus" style="vertical-align: middle; margin-right: 8px;"></i> Додати нову локацію</h2>
           <form class="contact-form" id="admin-location-form" onsubmit="submitNewLocation(event)">
             <div class="form-row" style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
               <div><label class="form-label">Назва закладу/місця</label><input class="form-input" id="loc-name" type="text" required /></div>
@@ -1191,7 +1191,7 @@
             <div class="form-row" style="background: rgba(201,168,76,0.05); padding: 16px; border: 0.5px solid rgba(201,168,76,0.2); margin-top: 16px;">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                 <label class="form-label" style="margin-bottom:0; color: var(--gold);">Відгуки клієнтів (Для AI-Аналітики)</label>
-                <button type="button" class="btn-outline" style="padding:6px 12px; font-size:10px; border-color:var(--gold); color:var(--gold); background: var(--noir);" onclick="calculateAIRating()">🧠 Аналізувати</button>
+                <button type="button" class="btn-outline" style="padding:6px 12px; font-size:10px; border-color:var(--gold); color:var(--gold); background: var(--noir);" onclick="calculateAIRating()"><i class="ti ti-brain" style="vertical-align: middle; margin-right: 4px;"></i> Аналізувати</button>
               </div>
               <textarea class="form-input" id="loc-reviews" style="min-height: 70px; background: rgba(10,10,10,0.5);" placeholder="Вставте сюди кілька відгуків з Google Maps або Instagram..."></textarea>
               <div style="font-size: 10px; color: var(--stone); margin-top: 8px;">* Вставте текст відгуків і натисніть кнопку. ШІ проаналізує їх і автоматично заповнить поле "AI-Рейтинг".</div>
@@ -1208,7 +1208,7 @@
         <div class="admin-tab-pane" id="admin-tab-messages">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
              <h2 style="font-family:'Cormorant Garamond', serif; font-size:28px; color:var(--gold);">Вхідні повідомлення</h2>
-             <button class="btn-outline" style="padding:6px 16px; font-size:9px;" onclick="loadAdminMessages()">🔄 Оновити</button>
+             <button class="btn-outline" style="padding:6px 16px; font-size:9px;" onclick="loadAdminOrders()"><i class="ti ti-refresh" style="vertical-align: middle; margin-right: 4px; font-size: 12px;"></i> Оновити</button>
           </div>
           <div id="admin-messages-list"></div>
         </div>
@@ -1220,9 +1220,11 @@
   
   <div id="toast-container"></div>
   <button class="cart-floating-btn" id="cart-float-btn" onclick="openCartModal()">
-    🛒 Кошик (<span id="cart-count">0</span>) - <span id="cart-total">0</span> грн
+    <i class="ti ti-shopping-cart" style="font-size: 18px; vertical-align: middle; margin-right: 6px;"></i> Кошик (<span id="cart-count">0</span>) - <span id="cart-total">0</span> грн
   </button>
-<button class="ai-chat-btn" id="ai-chat-toggle-btn" onclick="toggleAIChat()">✨ AI Гастро-Гід</button>
+  <button class="ai-chat-btn" id="ai-chat-toggle-btn" onclick="toggleAIChat()">
+    <i class="ti ti-sparkles" style="font-size: 16px; vertical-align: middle; margin-right: 6px;"></i> AI Гастро-Гід
+  </button>
   
   <div class="ai-chat-window" id="ai-chat-window">
     <div class="ai-chat-header">
@@ -1735,7 +1737,7 @@ function renderProducts(products) {
   if (products.length === 0) {
     container.innerHTML = `
       <div style="grid-column: 1 / -1; text-align: center; padding: 80px 20px; border: 0.5px dashed rgba(201,168,76,0.3); margin-top: 24px;">
-        <div style="font-size: 48px; margin-bottom: 16px;">🔍</div>
+        <div style="margin-bottom: 16px; color: var(--stone);"><i class="ti ti-search" style="font-size: 48px;"></i></div>
         <h3 style="font-family:'Cormorant Garamond', serif; font-size:28px; color:var(--gold); margin-bottom:12px;">Нічого не знайдено</h3>
         <p style="color:var(--stone-light); margin-bottom:24px;">На жаль, за обраними фільтрами немає крафтової продукції.</p>
         <button class="btn-outline" onclick="document.getElementById('filter-category').value='Всі'; document.getElementById('filter-producer').value='Всі'; applyComplexFilter();">Скинути фільтри</button>
@@ -1978,11 +1980,11 @@ async function loadAdminOrders() {
               <div style="min-width: 250px; background: rgba(255,255,255,0.02); padding: 20px; border: 0.5px solid rgba(138,130,120,0.15); align-self: flex-start;">
                 <div style="font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--stone); margin-bottom: 16px;">Дані клієнта</div>
                 <div style="margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                  <span style="font-size: 16px;">👤</span>
+                  <i class="ti ti-user" style="font-size: 16px; color: var(--gold);"></i>
                   <strong style="color:var(--ivory); font-size: 15px;">${clientName}</strong>
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px;">
-                  <span style="font-size: 16px;">📞</span>
+                  <i class="ti ti-phone" style="font-size: 16px; color: var(--gold);"></i>
                   <a href="tel:${clientPhone}" style="color:var(--gold); text-decoration: none; font-size: 15px; font-weight: 500;">${clientPhone}</a>
                 </div>
               </div>
@@ -2000,7 +2002,7 @@ async function loadAdminOrders() {
                 <option value="Скасовано" ${o.status === 'Скасовано' ? 'selected' : ''}>Скасовано</option>
               </select>
             </div>
-            <button class="btn-outline" style="padding:10px 20px; font-size:10px; color:#ff6b6b; border-color:rgba(255,107,107,0.2);" onclick="deleteOrder('${o.id}')">🗑️ Видалити замовлення</button>
+            <button class="btn-outline" style="padding:10px 20px; font-size:10px; color:#ff6b6b; border-color:rgba(255,107,107,0.2);" onclick="deleteOrder('${o.id}')"><i class="ti ti-trash" style="vertical-align: middle; margin-right: 4px;"></i> Видалити замовлення</button>
           </div>
 
         </div>`;
@@ -2166,12 +2168,12 @@ async function loadAdminMessages() {
       
       container.innerHTML += `
         <div class="msg-card">
-          <div class="msg-header"><span>📅 ${safeDate} | 🏷️ ${typeStr}</span><span>👤 ${nameStr} (${phoneStr})</span></div>
+          <div class="msg-header"><span><i class="ti ti-calendar" style="vertical-align: middle;"></i> ${safeDate} | <i class="ti ti-tag" style="vertical-align: middle;"></i> ${typeStr}</span><span><i class="ti ti-user" style="vertical-align: middle;"></i> ${nameStr} (${phoneStr})</span></div>
           <div class="msg-title">${businessStr}</div>
           <p style="color:var(--stone-light);">${m.message || ''}</p>
           <div style="font-size: 11px; color:var(--stone); margin-top:16px; display:flex; justify-content:space-between; align-items:center; border-top: 0.5px solid rgba(138,130,120,0.1); padding-top: 12px;">
-            <span>📧 Email: ${m.email || 'Не вказано'}</span>
-            <button class="btn-outline" style="padding: 6px 14px; font-size: 10px; color: #ff6b6b; border-color: rgba(255,107,107,0.2);" onclick="deleteMessage('${m.id}')">🗑️ Видалити</button>
+            <span><i class="ti ti-mail" style="vertical-align: middle; font-size: 14px;"></i> Email: ${m.email || 'Не вказано'}</span>
+            <button class="btn-outline" style="padding: 6px 14px; font-size: 10px; color: #ff6b6b; border-color: rgba(255,107,107,0.2);" onclick="deleteMessage('${m.id}')"><i class="ti ti-trash" style="vertical-align: middle; margin-right: 4px;"></i> Видалити</button>
           </div>
         </div>`;
     });
@@ -2261,8 +2263,8 @@ async function loadAdminProducts() {
             </div>
           </div>
           <div style="display:flex; gap:10px;">
-            <button class="btn-outline" style="padding:6px 12px; font-size:10px; border-color:rgba(201,168,76,0.3);" onclick="editProduct('${p.id}')">✏️ Редагувати</button>
-            <button class="btn-outline" style="padding:6px 12px; font-size:10px; color:#ff6b6b; border-color:rgba(255,107,107,0.2);" onclick="deleteProduct('${p.id}')">🗑️ Видалити</button>
+            <button class="btn-outline" style="padding:6px 12px; font-size:10px; border-color:rgba(201,168,76,0.3);" onclick="editProduct('${p.id}')"><i class="ti ti-pencil" style="vertical-align: middle; margin-right: 4px;"></i> Редагувати</button>
+            <button class="btn-outline" style="padding:6px 12px; font-size:10px; color:#ff6b6b; border-color:rgba(255,107,107,0.2);" onclick="deleteProduct('${p.id}')"><i class="ti ti-trash" style="vertical-align: middle; margin-right: 4px;"></i> Видалити</button>
           </div>
         </div>`;
     });
@@ -2285,7 +2287,7 @@ function editProduct(id) {
   
   document.getElementById('admin-desc').value = prod.description || '';
   
-  document.getElementById('admin-product-form-title').innerText = '✏️ Редагувати товар';
+  document.getElementById('admin-product-form-title').innerHTML = '<i class="ti ti-pencil" style="vertical-align: middle; margin-right: 8px;"></i> Редагувати товар';
   document.getElementById('admin-submit-btn').innerText = 'Зберегти зміни';
   document.getElementById('admin-product-form').scrollIntoView({ behavior: 'smooth' });
 }
@@ -2295,7 +2297,7 @@ function resetProductForm() {
   document.getElementById('admin-product-form').reset();
   document.getElementById('admin-image').value = 'images/';
   document.getElementById('admin-file-chooser').value = '';
-  document.getElementById('admin-product-form-title').innerText = 'Додати новий продукт';
+  document.getElementById('admin-product-form-title').innerHTML = '<i class="ti ti-box" style="vertical-align: middle; margin-right: 8px;"></i> Додати новий продукт';
   document.getElementById('admin-submit-btn').innerText = 'Опублікувати товар';
 }
 
